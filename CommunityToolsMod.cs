@@ -112,7 +112,8 @@ namespace CommunityTools
 
         private void InitModUI()
         {
-            GUI.Box(new Rect(10f, 10f, 300f, 300f), "Community Tools", GUI.skin.window);
+            GUI.Box(new Rect(10f, 10f, 300f, 850f), "Community Tools", GUI.skin.window);
+
             // Label Topic Description
             GUI.Label(new Rect(30f, 20f, 200f, 20f), "Topic description", labelStyle);
             //Topic Description
@@ -126,30 +127,30 @@ namespace CommunityTools
             // Label Bug Description
             GUI.Label(new Rect(30f, 100f, 200f, 20f), "Description", labelStyle);
             // Bug Description
-            m_Description = GUI.TextArea(new Rect(30f, 120f, 200f, 20f), m_Description, textAreaStyle);
+            m_Description = GUI.TextArea(new Rect(30f, 120f, 200f, 200f), m_Description, textAreaStyle);
 
             // Label Steps To Reproduce
-            GUI.Label(new Rect(30f, 140f, 200f, 20f), "Steps to reproduce", labelStyle);
+            GUI.Label(new Rect(30f, 320f, 200f, 20f), "Steps to reproduce", labelStyle);
             // Steps to reproduce
-            m_StepsToReproduce = GUI.TextArea(new Rect(30f, 160f, 200f, 20f), m_StepsToReproduce, textAreaStyle);
+            m_StepsToReproduce = GUI.TextArea(new Rect(30f, 340f, 200f, 200f), m_StepsToReproduce, textAreaStyle);
 
             // Bug Reproduce Rate
-            GUI.Label(new Rect(30f, 180f, 200f, 20f), "Reproduce Rate", labelStyle);
+            GUI.Label(new Rect(30f, 540f, 200f, 20f), "Reproduce Rate", labelStyle);
             //Bug Report Type
-            m_SelectedReproduceRate = GUI.TextField(new Rect(30f, 200f, 200f, 20f), m_SelectedReproduceRate, textFieldStyle);
+            m_SelectedReproduceRate = GUI.TextField(new Rect(30f, 560f, 200f, 20f), m_SelectedReproduceRate, textFieldStyle);
 
             // Label Expected Behaviour
-            GUI.Label(new Rect(30f, 220f, 200f, 20f), "Expected behaviour", labelStyle);
+            GUI.Label(new Rect(30f, 580f, 200f, 20f), "Expected behaviour", labelStyle);
             //Expected Behaviour
-            m_ExpectedBehaviour = GUI.TextArea(new Rect(30f, 240f, 200f, 20f), m_ExpectedBehaviour, textAreaStyle);
+            m_ExpectedBehaviour = GUI.TextArea(new Rect(30f, 600f, 200f, 20f), m_ExpectedBehaviour, textAreaStyle);
 
             // Label Note
-            GUI.Label(new Rect(30f, 260f, 200f, 20f), "Note", labelStyle);
+            GUI.Label(new Rect(30f, 620f, 200f, 20f), "Note", labelStyle);
             //Note
-            m_Note = GUI.TextArea(new Rect(30f, 280f, 200f, 20f), m_Note, textAreaStyle);
+            m_Note = GUI.TextArea(new Rect(30f, 640f, 200f, 200f), m_Note, textAreaStyle);
 
             // Create Bug Report Button
-            if (GUI.Button(new Rect(30f, 300f, 200f, 20f), "Create bug report", GUI.skin.button))
+            if (GUI.Button(new Rect(30f, 840f, 200f, 20f), "Create bug report", GUI.skin.button))
             {
                 OnClickCreateBugReportButton();
                 showUI = false;
@@ -227,7 +228,6 @@ namespace CommunityTools
                 {
                     bugReportBuilder.AppendLine($"\tStep {step.Rank.ToString()}: {step.Description}");
                 }
-
                 bugReportBuilder.AppendLine($"Reproduce rate: {bugReportInfo.ReproduceRate.ToString()}");
                 bugReportBuilder.AppendLine($"Expected behaviour: {bugReportInfo.ExpectedBehaviour}");
                 bugReportBuilder.AppendLine($"PC spec:");
@@ -253,9 +253,9 @@ namespace CommunityTools
             {
                 foreach (var step in bugReportInfo.StepsToReproduce)
                 {
-                    steps += $"{{ \"Rank\": {step.Rank.ToString()}, \"Description\": {step.Description}}},";
+                    steps += $"{{ \"Rank\": {step.Rank.ToString()}, \"Description\": \"{step.Description}\"}},";
                 }
-                reportTemplate = $"{{ \"Topic\": {{ \"GameVersion\": {bugReportInfo.Topic?.GameVersion}, \"Description\": {bugReportInfo.Topic?.Description} }}, \"Type\": {bugReportInfo.BugReportType.ToString()}, \"Description\": {bugReportInfo.Description}, \"StepsToReproduce\": [{steps}], \"ReproduceRate\": {bugReportInfo.ReproduceRate.ToString()}, \"ExpectedBehaviour\": {bugReportInfo.ExpectedBehaviour}, \"PcSpecs\": {{ \"OS\": {bugReportInfo.PcSpecs?.OS}, \"CPU\": {bugReportInfo.PcSpecs?.CPU}, \"GPU\": {bugReportInfo.PcSpecs?.GPU}, \"RAM\": {bugReportInfo.PcSpecs?.RAM}}}, \"MapCoordinates\": {bugReportInfo.MapCoordinates?.ToString()}, \"Note\": {bugReportInfo.Note} }}";
+                reportTemplate = $"{{ \"Topic\": {{ \"GameVersion\": \"{bugReportInfo.Topic?.GameVersion}\", \"Description\": \"{bugReportInfo.Topic?.Description}\" }}, \"Type\": \"{bugReportInfo.BugReportType.ToString()}\", \"Description\": \"{bugReportInfo.Description}\", \"StepsToReproduce\": [{steps}], \"ReproduceRate\": \"{bugReportInfo.ReproduceRate.ToString()}\", \"ExpectedBehaviour\": \"{bugReportInfo.ExpectedBehaviour}\", \"PcSpecs\": {{ \"OS\": \"{bugReportInfo.PcSpecs?.OS}\", \"CPU\": \"{bugReportInfo.PcSpecs?.CPU}\", \"GPU\": \"{bugReportInfo.PcSpecs?.GPU}\", \"RAM\": \"{bugReportInfo.PcSpecs?.RAM}\"}}, \"MapCoordinates\": \"{bugReportInfo.MapCoordinates?.ToString()}\", \"Note\": \"{bugReportInfo.Note}\" }}";
 
                 return reportTemplate;
             }

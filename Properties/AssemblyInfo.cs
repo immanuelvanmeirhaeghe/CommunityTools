@@ -6,7 +6,7 @@ using System.Runtime.InteropServices;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("CommunityTools")]
-[assembly: AssemblyDescription("CommunityTools is a mod for Green Hell that aims to be a tool for the gamer community.")]
+[assembly: AssemblyDescription("CommunityTools is a mod for Green Hell that aims to be a tool for the gamer community. For now, it helps in creating a bug report. Output can be found in the game installation folder in subfolder Logs.")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Spawn Area")]
 [assembly: AssemblyProduct("CommunityTools.CommunityToolsMod")]
