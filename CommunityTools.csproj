@@ -22,8 +22,6 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="CommunityToolsMod.cs" />
-    <Compile Include="PlayerExtended.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="BaseModLib">
@@ -344,6 +342,14 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CommunityToolsMod.cs" />
+    <Compile Include="GameObjects\BugReportInfo.cs" />
+    <Compile Include="GameObjects\MapCoordinates.cs" />
+    <Compile Include="GameObjects\PcSpecs.cs" />
+    <Compile Include="GameObjects\StepsToReproduce.cs" />
+    <Compile Include="GameObjects\Topic.cs" />
+    <Compile Include="PlayerExtended.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
