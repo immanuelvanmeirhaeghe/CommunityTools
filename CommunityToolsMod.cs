@@ -1,6 +1,7 @@
 ﻿using CommunityTools.GameObjects;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using UnityEngine;
@@ -112,60 +113,60 @@ namespace CommunityTools
 
         private void InitModUI()
         {
-            GUI.Box(new Rect(10f, 10f, 300f, 850f), "Community Tools", GUI.skin.window);
+            GUI.Box(new Rect(10f, 10f, 300f, 1050f), "Community Tools - Bug report form", GUI.skin.window);
 
             // Label Topic Description
             GUI.Label(new Rect(30f, 20f, 200f, 20f), "Topic description", labelStyle);
             //Topic Description
-            m_TopicDescription = GUI.TextField(new Rect(30f, 40f, 200f, 20f), m_TopicDescription, textFieldStyle);
+            m_TopicDescription = GUI.TextField(new Rect(230f, 20f, 200f, 20f), m_TopicDescription, textFieldStyle);
 
             // Label Bug Report Type
-            GUI.Label(new Rect(30f, 60f, 200f, 20f), "Bug Report Type", labelStyle);
+            GUI.Label(new Rect(30f, 40f, 200f, 20f), "Bug Report Type", labelStyle);
             //Bug Report Type
-            m_SelectedBugReportType = GUI.TextField(new Rect(30f, 80f, 200f, 20f), m_SelectedBugReportType, textFieldStyle);
+            m_SelectedBugReportType = GUI.TextField(new Rect(230f, 40f, 200f, 20f), m_SelectedBugReportType, textFieldStyle);
 
             // Label Bug Description
-            GUI.Label(new Rect(30f, 100f, 200f, 20f), "Description", labelStyle);
+            GUI.Label(new Rect(30f, 60f, 200f, 20f), "Description", labelStyle);
             // Bug Description
-            m_Description = GUI.TextArea(new Rect(30f, 120f, 200f, 200f), m_Description, textAreaStyle);
+            m_Description = GUI.TextArea(new Rect(230f, 60f, 200f, 200f), m_Description, textAreaStyle);
 
             // Label Steps To Reproduce
-            GUI.Label(new Rect(30f, 320f, 200f, 20f), "Steps to reproduce", labelStyle);
+            GUI.Label(new Rect(30f, 260f, 200f, 20f), "Steps to reproduce", labelStyle);
             // Steps to reproduce
-            m_StepsToReproduce = GUI.TextArea(new Rect(30f, 340f, 200f, 200f), m_StepsToReproduce, textAreaStyle);
+            m_StepsToReproduce = GUI.TextArea(new Rect(230f, 260f, 200f, 200f), m_StepsToReproduce, textAreaStyle);
 
             // Bug Reproduce Rate
-            GUI.Label(new Rect(30f, 540f, 200f, 20f), "Reproduce Rate", labelStyle);
+            GUI.Label(new Rect(30f, 460f, 200f, 20f), "Reproduce rate", labelStyle);
             //Bug Report Type
-            m_SelectedReproduceRate = GUI.TextField(new Rect(30f, 560f, 200f, 20f), m_SelectedReproduceRate, textFieldStyle);
+            m_SelectedReproduceRate = GUI.TextField(new Rect(230f, 460f, 200f, 20f), m_SelectedReproduceRate, textFieldStyle);
 
             // Label Expected Behaviour
-            GUI.Label(new Rect(30f, 580f, 200f, 20f), "Expected behaviour", labelStyle);
+            GUI.Label(new Rect(30f, 480f, 200f, 20f), "Expected behaviour", labelStyle);
             //Expected Behaviour
-            m_ExpectedBehaviour = GUI.TextArea(new Rect(30f, 600f, 200f, 20f), m_ExpectedBehaviour, textAreaStyle);
+            m_ExpectedBehaviour = GUI.TextArea(new Rect(230f, 480f, 200f, 200f), m_ExpectedBehaviour, textAreaStyle);
 
             // Label Note
-            GUI.Label(new Rect(30f, 620f, 200f, 20f), "Note", labelStyle);
+            GUI.Label(new Rect(30f, 680f, 200f, 20f), "Note", labelStyle);
             //Note
-            m_Note = GUI.TextArea(new Rect(30f, 640f, 200f, 200f), m_Note, textAreaStyle);
+            m_Note = GUI.TextArea(new Rect(230f, 680f, 200f, 200f), m_Note, textAreaStyle);
 
             // Create Bug Report Button
-            if (GUI.Button(new Rect(30f, 840f, 200f, 20f), "Create bug report", GUI.skin.button))
+            if (GUI.Button(new Rect(30f, 880f, 200f, 20f), "Create bug report", GUI.skin.button))
             {
                 OnClickCreateBugReportButton();
                 showUI = false;
                 EnableCursor(false);
             }
-
         }
 
         private void OnClickCreateBugReportButton()
         {
+            string bugReportTimeStamp = DateTime.Now.ToString("yyyyMMdd");
             try
             {
                 SetBugReport();
-                CreateBugReportAsText();
-                ModAPI.Log.Write(GetBugReportAsJSON());
+                FileWrite($"{nameof(BugReportInfo)}.html", CreateBugReportAsHtml());
+                FileWrite($"{nameof(BugReportInfo)}.json", GetBugReportAsJSON());
             }
             catch (Exception exc)
             {
@@ -175,8 +176,6 @@ namespace CommunityTools
 
         private static void SetBugReport()
         {
-            string bugReportTimeStamp = DateTime.Now.ToString("yyyyMMdd");
-
             player.GetGPSCoordinates(out int gps_lat, out int gps_long);
 
             bugReportInfo = new BugReportInfo
@@ -201,9 +200,9 @@ namespace CommunityTools
                 PcSpecs = new PcSpecs
                 {
                     OS = $@"{SystemInfo.operatingSystem} - {SystemInfo.operatingSystemFamily}",
-                    CPU = $@"{SystemInfo.processorType} at {SystemInfo.processorFrequency} with {SystemInfo.processorCount} cores",
-                    GPU = $@"{SystemInfo.graphicsDeviceName}, Version: {SystemInfo.graphicsDeviceVersion}, Vendor: {SystemInfo.graphicsDeviceVendor}, Memory: {SystemInfo.graphicsMemorySize}",
-                    RAM = $@"{SystemInfo.systemMemorySize}"
+                    CPU = $@"{SystemInfo.processorType} with {SystemInfo.processorCount} cores",
+                    GPU = $@"{SystemInfo.graphicsDeviceName}, Version: {SystemInfo.graphicsDeviceVersion}, Vendor: {SystemInfo.graphicsDeviceVendor}, Memory: {SystemInfo.graphicsMemorySize} MB",
+                    RAM = $@"{SystemInfo.systemMemorySize} MB"
                 },
                 MapCoordinates = new MapCoordinates
                 {
@@ -215,33 +214,43 @@ namespace CommunityTools
 
         }
 
-        private void CreateBugReportAsText()
+        private string CreateBugReportAsHtml()
         {
-            StringBuilder bugReportBuilder = new StringBuilder();
+            StringBuilder bugReportBuilder = new StringBuilder("<!DOCTYPE html>");
             try
             {
-                bugReportBuilder.AppendLine($"Topic: [{bugReportInfo.Topic?.GameVersion}] - {bugReportInfo.Topic?.Description}");
-                bugReportBuilder.AppendLine($"Type: {bugReportInfo.BugReportType.ToString()}");
-                bugReportBuilder.AppendLine($"Description: {bugReportInfo.Description}");
-                bugReportBuilder.AppendLine($"Steps to Reproduce:");
+                bugReportBuilder.AppendLine($"<html class=\"client\">");
+                bugReportBuilder.AppendLine($"<head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\"><title>{bugReportInfo.Topic?.GameVersion}] - {bugReportInfo.Topic?.Description} :: Green Hell Bug Reports</title></head>");
+                bugReportBuilder.AppendLine($"<body>:");
+                bugReportBuilder.AppendLine($"<div class=\"topic\">[{bugReportInfo.Topic?.GameVersion}] - {bugReportInfo.Topic?.Description}</div>");
+                bugReportBuilder.AppendLine($"<div class=\"content\">");
+                bugReportBuilder.AppendLine($"<br>Type: {bugReportInfo.BugReportType.ToString()}");
+                bugReportBuilder.AppendLine($"<br>Description: {bugReportInfo.Description}");
+                bugReportBuilder.AppendLine($"<ul>Steps to Reproduce:");
                 foreach (var step in bugReportInfo.StepsToReproduce)
                 {
-                    bugReportBuilder.AppendLine($"\tStep {step.Rank.ToString()}: {step.Description}");
+                    bugReportBuilder.AppendLine($"<li>Step {step.Rank.ToString()}: {step.Description}</li>");
                 }
-                bugReportBuilder.AppendLine($"Reproduce rate: {bugReportInfo.ReproduceRate.ToString()}");
-                bugReportBuilder.AppendLine($"Expected behaviour: {bugReportInfo.ExpectedBehaviour}");
-                bugReportBuilder.AppendLine($"PC spec:");
-                bugReportBuilder.AppendLine($"\tOS: {bugReportInfo.PcSpecs?.OS}");
-                bugReportBuilder.AppendLine($"\tCPU: {bugReportInfo.PcSpecs?.CPU}");
-                bugReportBuilder.AppendLine($"\tGPU: {bugReportInfo.PcSpecs?.GPU}");
-                bugReportBuilder.AppendLine($"\tRAM: {bugReportInfo.PcSpecs?.RAM}");
-                bugReportBuilder.AppendLine($"Note:  {bugReportInfo.Note}");
+                bugReportBuilder.AppendLine($"</ul>:");
+                bugReportBuilder.AppendLine($"<br>Reproduce rate: {bugReportInfo.ReproduceRate.ToString()}");
+                bugReportBuilder.AppendLine($"<br>Expected behaviour: {bugReportInfo.ExpectedBehaviour}");
+                bugReportBuilder.AppendLine($"<ul>My PC spec:");
+                bugReportBuilder.AppendLine($"<li>OS: {bugReportInfo.PcSpecs?.OS}</li>");
+                bugReportBuilder.AppendLine($"<li>CPU: {bugReportInfo.PcSpecs?.CPU}</li>");
+                bugReportBuilder.AppendLine($"<li>GPU: {bugReportInfo.PcSpecs?.GPU}</li>");
+                bugReportBuilder.AppendLine($"<li>RAM: {bugReportInfo.PcSpecs?.RAM}</li>");
+                bugReportBuilder.AppendLine($"</ul>");
+                bugReportBuilder.AppendLine($"<br>Note:  {bugReportInfo.Note}");
+                bugReportBuilder.AppendLine($"</div>");
+                bugReportBuilder.AppendLine($"</body>");
+                bugReportBuilder.AppendLine($"</html>");
 
-                ModAPI.Log.Write(bugReportBuilder.ToString());
+                return bugReportBuilder.ToString();
             }
             catch (Exception exc)
             {
-                ModAPI.Log.Write($"[{nameof(CommunityToolsMod)}.{nameof(CommunityToolsMod)}:{nameof(CreateBugReportAsText)}] throws exception: {exc.Message}");
+                ModAPI.Log.Write($"[{nameof(CommunityToolsMod)}.{nameof(CommunityToolsMod)}:{nameof(CreateBugReportAsHtml)}] throws exception: {exc.Message}");
+                return bugReportBuilder.ToString();
             }
         }
 
@@ -318,6 +327,33 @@ namespace CommunityTools
             }
         }
 
+        public static bool FileWrite(string fileName, string fileContent)
+        {
+            try
+            {
+                byte[] data = Encoding.UTF8.GetBytes(fileContent);
+                using (FileStream fileStream = new FileStream(Application.persistentDataPath + "/Logs/" + fileName, FileMode.Create, FileAccess.Write))
+                {
+                    fileStream.Write(data, 0, data.Length);
+                }
+                return true;
+            }
+            catch (Exception exc)
+            {
+                ModAPI.Log.Write($"[{nameof(CommunityToolsMod)}.{nameof(CommunityToolsMod)}:{nameof(FileWrite)}] throws exception: {exc.Message}");
+                return false;
+            }
+        }
+
+        public static int FileRead(string file_name, byte[] data, int length)
+        {
+            FileInfo fileInfo = new FileInfo(Application.persistentDataPath + "/Logs/" + file_name);
+            using (FileStream fileStream = fileInfo.OpenRead())
+            {
+                fileStream.Read(data, 0, (int)fileStream.Length);
+                return (int)fileStream.Length;
+            }
+        }
 
     }
 }
