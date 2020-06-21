@@ -161,12 +161,12 @@ namespace CommunityTools
 
         private void OnClickCreateBugReportButton()
         {
-            string bugReportTimeStamp = DateTime.Now.ToString("yyyyMMdd");
+            string bugReportTimeStamp = DateTime.Now.ToString("yyyyMMddThhmmmsZ");
             try
             {
                 SetBugReport();
-                FileWrite($"{nameof(BugReportInfo)}.html", CreateBugReportAsHtml());
-                FileWrite($"{nameof(BugReportInfo)}.json", GetBugReportAsJSON());
+                FileWrite($"{nameof(BugReportInfo)}.{bugReportTimeStamp}.html", CreateBugReportAsHtml());
+                FileWrite($"{nameof(BugReportInfo)}.{bugReportTimeStamp}.json", GetBugReportAsJSON());
             }
             catch (Exception exc)
             {
@@ -332,9 +332,21 @@ namespace CommunityTools
             try
             {
                 byte[] data = Encoding.UTF8.GetBytes(fileContent);
-                using (FileStream fileStream = new FileStream(Application.persistentDataPath + "/Logs/" + fileName, FileMode.Create, FileAccess.Write))
+
+                var fileDataPath = Application.dataPath + "/Logs/";
+                if (!Directory.Exists(fileDataPath))
                 {
-                    fileStream.Write(data, 0, data.Length);
+                    Directory.CreateDirectory(fileDataPath);
+                }
+
+                var file = fileDataPath + fileName;
+                if (!File.Exists(file))
+                {
+                    using (FileStream fileStream =  File.Create(file))
+                    {
+                        fileStream.Write(data, 0, data.Length);
+                        fileStream.Flush();
+                    }
                 }
                 return true;
             }
