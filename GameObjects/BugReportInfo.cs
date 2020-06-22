@@ -20,7 +20,7 @@ namespace CommunityTools.GameObjects
         /// <summary>
         /// Describe the steps to reproduce the bug
         /// </summary>
-        public List<StepsToReproduce> StepsToReproduce { get; set; }
+        public List<StepToReproduce> StepsToReproduce { get; set; }
 
         public string ReproduceRate { get; set; }
 
@@ -48,7 +48,7 @@ namespace CommunityTools.GameObjects
         public BugReportInfo()
         {
             Topic = new Topic();
-            StepsToReproduce = new List<StepsToReproduce>();
+            StepsToReproduce = new List<StepToReproduce>();
             PcSpecs = new PcSpecs();
             MapCoordinates = new MapCoordinates();
         }

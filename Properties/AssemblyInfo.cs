@@ -8,7 +8,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTitle("CommunityTools")]
 [assembly: AssemblyDescription("CommunityTools is a mod for Green Hell that aims to be a tool for the gamer community. For now, it helps in creating a bug report. Output can be found in the game installation data folder in subfolder Logs.")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("Spawn Area")]
+[assembly: AssemblyCompany("Spawn Area - Dragon Legion")]
 [assembly: AssemblyProduct("CommunityTools.CommunityToolsMod")]
 [assembly: AssemblyCopyright("Copyright ©  2020")]
 [assembly: AssemblyTrademark("")]
@@ -29,5 +29,5 @@ using System.Runtime.InteropServices;
 //      Build Number
 //      Revision
 //
-[assembly: AssemblyVersion("1.6.1.0")]
-[assembly: AssemblyFileVersion("1.6.1.0")]
+[assembly: AssemblyVersion("1.0.0.0")]
+[assembly: AssemblyFileVersion("1.0.0.0")]

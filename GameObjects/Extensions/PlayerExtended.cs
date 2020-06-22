@@ -4,17 +4,17 @@ using System.Linq;
 using System.Text;
 using UnityEngine;
 
-namespace CommunityTools
+namespace CommunityTools.GameObjects.Extensions
 {
-    /// <summary>
-    /// Inject modding interface into game
-    /// </summary>
     class PlayerExtended : Player
     {
+        /// <summary>
+        /// Inject this mod into  the game
+        /// </summary>
         protected override void Start()
         {
             base.Start();
-            new GameObject($"__{nameof(CommunityToolsMod)}__").AddComponent<CommunityToolsMod>();
+            new GameObject($"__{nameof(CommunityToolsModule)}__").AddComponent<CommunityToolsModule>();
         }
     }
 }

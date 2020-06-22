@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace CommunityTools.GameObjects
 {
-    class StepsToReproduce : MonoBehaviour
+    class StepToReproduce : MonoBehaviour
     {
         public int Rank { get; set; }
 
