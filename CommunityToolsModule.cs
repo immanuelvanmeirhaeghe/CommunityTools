@@ -13,9 +13,10 @@ namespace CommunityTools
     /// </summary>
     class CommunityToolsModule : MonoBehaviour
     {
-        public bool IsCommunityToolsModActive = false;
+        public bool IsActivated = false;
         private static CommunityToolsModule s_Instance;
         private bool showUI = false;
+        private bool m_quickReportsEnabled = false;
 
         protected static BugReportInfo bugReportInfo;
         protected static ItemsManager itemsManager;
@@ -28,6 +29,7 @@ namespace CommunityTools
         protected static GUIStyle textFieldStyle;
         protected static GUIStyle textAreaStyle;
         protected static GUIStyle buttonStyle;
+        protected static GUIStyle toggleStyle;
 
         private static string m_SelectedBugReportType;
         private static string m_SelectedReproduceRate;
@@ -39,7 +41,7 @@ namespace CommunityTools
 
         public CommunityToolsModule()
         {
-            IsCommunityToolsModActive = true;
+            IsActivated = true;
             s_Instance = this;
         }
 
@@ -50,19 +52,22 @@ namespace CommunityTools
 
         private void Update()
         {
-            if (Input.GetKeyDown(KeyCode.RightControl) && Input.GetKeyDown(KeyCode.Keypad5))
+
+            // To make a quick bug report, if the mod option has been activated, press Keypad5
+            if (m_quickReportsEnabled && Input.GetKeyDown(KeyCode.Keypad5))
+            {
+                InitData();
+                CreateBugReports();
+            }
+
+            // To show the mod UI, press Pause
+            if (Input.GetKeyDown(KeyCode.Pause) && Input.GetKeyDown(KeyCode.Keypad5))
             {
                 if (!showUI)
                 {
-                    bugReportInfo = new BugReportInfo();
+                    InitData();
 
-                    itemsManager = ItemsManager.Get();
-
-                    menuInGameManager = MenuInGameManager.Get();
-
-                    hUDManager = HUDManager.Get();
-
-                    player = Player.Get();
+                    IsActivated = true;
 
                     EnableCursor(true);
                 }
@@ -80,6 +85,7 @@ namespace CommunityTools
             if (showUI)
             {
                 InitData();
+                InitSkinUI();
                 InitModUI();
             }
         }
@@ -115,6 +121,11 @@ namespace CommunityTools
             {
                 buttonStyle = new GUIStyle(GUI.skin.button);
             }
+
+            if (toggleStyle == null)
+            {
+                toggleStyle = new GUIStyle(GUI.skin.toggle);
+            }
         }
 
         private static void EnableCursor(bool enabled = false)
@@ -138,13 +149,15 @@ namespace CommunityTools
 
         private static void InitData()
         {
+            bugReportInfo = new BugReportInfo();
+
             itemsManager = ItemsManager.Get();
+
+            menuInGameManager = MenuInGameManager.Get();
 
             hUDManager = HUDManager.Get();
 
             player = Player.Get();
-
-            InitSkinUI();
         }
 
         private void InitModUI()
@@ -152,42 +165,45 @@ namespace CommunityTools
             GUI.Box(new Rect(10f, 10f, 300f, 1050f), "Community Tools - Bug report form", GUI.skin.window);
 
             // Label Topic Description
-            GUI.Label(new Rect(30f, 20f, 200f, 20f), "Topic description", labelStyle);
+            GUI.Label(new Rect(30f, 20f, 20f, 20f), "Topic description", labelStyle);
             //Topic Description
             m_TopicDescription = GUI.TextField(new Rect(230f, 20f, 200f, 20f), m_TopicDescription, textFieldStyle);
 
             // Label Bug Report Type
-            GUI.Label(new Rect(30f, 40f, 200f, 20f), "Bug Report Type", labelStyle);
+            GUI.Label(new Rect(30f, 40f, 20f, 20f), "Bug Report Type", labelStyle);
             //Bug Report Type
             m_SelectedBugReportType = GUI.TextField(new Rect(230f, 40f, 200f, 20f), m_SelectedBugReportType, textFieldStyle);
 
             // Label Bug Description
-            GUI.Label(new Rect(30f, 60f, 200f, 20f), "Description", labelStyle);
+            GUI.Label(new Rect(30f, 60f, 20f, 20f), "Description", labelStyle);
             // Bug Description
             m_Description = GUI.TextArea(new Rect(230f, 60f, 200f, 200f), m_Description, textAreaStyle);
 
             // Label Steps To Reproduce
-            GUI.Label(new Rect(30f, 260f, 200f, 20f), "Steps to reproduce", labelStyle);
+            GUI.Label(new Rect(30f, 260f, 20f, 20f), "Steps to reproduce", labelStyle);
             // Steps to reproduce
             m_StepsToReproduce = GUI.TextArea(new Rect(230f, 260f, 200f, 200f), m_StepsToReproduce, textAreaStyle);
 
             // Bug Reproduce Rate
-            GUI.Label(new Rect(30f, 460f, 200f, 20f), "Reproduce rate", labelStyle);
+            GUI.Label(new Rect(30f, 460f, 20f, 20f), "Reproduce rate", labelStyle);
             //Bug Report Type
             m_SelectedReproduceRate = GUI.TextField(new Rect(230f, 460f, 200f, 20f), m_SelectedReproduceRate, textFieldStyle);
 
             // Label Expected Behaviour
-            GUI.Label(new Rect(30f, 480f, 200f, 20f), "Expected behaviour", labelStyle);
+            GUI.Label(new Rect(30f, 480f, 20f, 20f), "Expected behaviour", labelStyle);
             //Expected Behaviour
             m_ExpectedBehaviour = GUI.TextArea(new Rect(230f, 480f, 200f, 200f), m_ExpectedBehaviour, textAreaStyle);
 
             // Label Note
-            GUI.Label(new Rect(30f, 680f, 200f, 20f), "Note", labelStyle);
+            GUI.Label(new Rect(30f, 680f, 20f, 20f), "Note", labelStyle);
             //Note
             m_Note = GUI.TextArea(new Rect(230f, 680f, 200f, 200f), m_Note, textAreaStyle);
 
+            //Enable or disable quick bug reports
+            m_quickReportsEnabled = GUI.Toggle(new Rect(30f, 880f, 200f, 20f), m_quickReportsEnabled, "Quick reports ON/OFF (Press Keypad 5)", toggleStyle);
+
             // Create Bug Report Button
-            if (GUI.Button(new Rect(30f, 880f, 200f, 20f), "Create bug report", GUI.skin.button))
+            if (GUI.Button(new Rect(30f, 900f, 200f, 20f), "Create bug report", GUI.skin.button))
             {
                 OnClickCreateBugReportButton();
                 showUI = false;
@@ -199,26 +215,30 @@ namespace CommunityTools
         {
             try
             {
-                string timeStamp = DateTime.Now.ToString("yyyyMMddThhmmmsZ");
-                string htmlReportName = $"{nameof(BugReportInfo)}.{timeStamp}.html";
-                string jsonReportName = $"{nameof(BugReportInfo)}.{timeStamp}.json";
-
-                SetBugReport();
-
-                if (FileWrite(htmlReportName, CreateBugReportAsHtml()))
-                {
-                    ShowHUDBigInfo($"Report name {htmlReportName}", "New bug report created", HUDInfoLogTextureType.Count.ToString());
-                }
-
-                if (FileWrite(jsonReportName, GetBugReportAsJSON()))
-                {
-                    ShowHUDBigInfo($"Report name {jsonReportName}", "New bug report created", HUDInfoLogTextureType.Count.ToString());
-                }
-
+                CreateBugReports();
             }
             catch (Exception exc)
             {
                 ModAPI.Log.Write($"[{nameof(CommunityToolsModule)}.{nameof(CommunityToolsModule)}:{nameof(OnClickCreateBugReportButton)}] throws exception: {exc.Message}");
+            }
+        }
+
+        private void CreateBugReports()
+        {
+            string timeStamp = DateTime.Now.ToString("yyyyMMddThhmmmsZ");
+            string htmlReportName = $"{nameof(BugReportInfo)}.{timeStamp}.html";
+            string jsonReportName = $"{nameof(BugReportInfo)}.{timeStamp}.json";
+
+            SetBugReport();
+
+            if (FileWrite(htmlReportName, CreateBugReportAsHtml()))
+            {
+                ShowHUDBigInfo($"Report name {htmlReportName}", "New bug report created", HUDInfoLogTextureType.Count.ToString());
+            }
+
+            if (FileWrite(jsonReportName, GetBugReportAsJSON()))
+            {
+                ShowHUDBigInfo($"Report name {jsonReportName}", "New bug report created", HUDInfoLogTextureType.Count.ToString());
             }
         }
 

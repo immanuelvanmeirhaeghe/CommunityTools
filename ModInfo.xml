@@ -1,6 +1,6 @@
 <Mod ID="CommunityTools">
   <Compatible>1.6.1</Compatible>
-  <Button Standard="RightCtrl+NumPad5" ID="ModKeyBindingId">
+  <Button Standard="Pause" ID="ModKeyBindingId">
     <Name>
       <EN>ModKeyBindingId</EN>
     </Name>
