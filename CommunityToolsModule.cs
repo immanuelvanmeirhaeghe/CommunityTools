@@ -36,7 +36,7 @@ namespace CommunityTools
         private static string m_TopicDescription = $"Short topic describing the bug.";
         private static string m_Description = $"The description of the bug.";
         private static string m_ExpectedBehaviour = $"Describe what you would have expected to happen in stead.";
-        private static string m_StepsToReproduce = $"Use a semi-colon to separate each step description like this; Then this is step 2; And this will become step 3;";
+        private static string m_StepsToReproduce = $"Use a semi-colon to separate each step description like this; Then this is step 2; And this will become step 3.";
         private static string m_Note = $"You can add any additional info here, like links to screenshots.";
 
         public CommunityToolsModule()
@@ -151,8 +151,6 @@ namespace CommunityTools
 
         private static void InitData()
         {
-            DebugUtils.Assert($"{nameof(CommunityTools)}.{nameof(CommunityToolsModule)}:{nameof(InitData)}", false);
-
             bugReportInfo = new BugReportInfo();
 
             itemsManager = ItemsManager.Get();
