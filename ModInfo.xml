@@ -1,6 +1,6 @@
 <Mod ID="CommunityTools">
   <Compatible>1.6.1</Compatible>
-  <Button Standard="Pause" ID="ModKeyBindingId">
+  <Button Standard="RightCtrl+NumPad5" ID="ModKeyBindingId">
     <Name>
       <EN>ModKeyBindingId</EN>
     </Name>
@@ -14,5 +14,5 @@
   <Description>
     <EN>CommunityTools is a mod for Green Hell that aims to be a tool for the gamer community. For now, it helps in creating a bug report. Output can be found in the game installation data folder in subfolder Logs.</EN>
   </Description>
-  <Version>1.6.1.0</Version>
+  <Version>1.0.0.0</Version>
 </Mod>

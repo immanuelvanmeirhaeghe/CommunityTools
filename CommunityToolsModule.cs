@@ -31,13 +31,13 @@ namespace CommunityTools
         protected static GUIStyle buttonStyle;
         protected static GUIStyle toggleStyle;
 
-        private static string m_SelectedBugReportType;
-        private static string m_SelectedReproduceRate;
-        private static string m_TopicDescription;
-        private static string m_Description;
-        private static string m_ExpectedBehaviour;
-        private static string m_StepsToReproduce;
-        private static string m_Note;
+        private static string m_BugReportType = $"Eg. UI, Crafting, Building...";
+        private static string m_ReproduceRate = $"At least once";
+        private static string m_TopicDescription = $"Short topic describing the bug.";
+        private static string m_Description = $"The description of the bug.";
+        private static string m_ExpectedBehaviour = $"Describe what you would have expected to happen in stead.";
+        private static string m_StepsToReproduce = $"Use a semi-colon to separate each step description like this; Then this is step 2; And this will become step 3;";
+        private static string m_Note = $"You can add any additional info here, like links to screenshots.";
 
         public CommunityToolsModule()
         {
@@ -52,16 +52,8 @@ namespace CommunityTools
 
         private void Update()
         {
-
-            // To make a quick bug report, if the mod option has been activated, press Keypad5
-            if (m_quickReportsEnabled && Input.GetKeyDown(KeyCode.Keypad5))
-            {
-                InitData();
-                CreateBugReports();
-            }
-
-            // To show the mod UI, press Pause
-            if (Input.GetKeyDown(KeyCode.Pause) && Input.GetKeyDown(KeyCode.Keypad5))
+            // To show the mod UI, press RightControl+Keypad5
+            if (Input.GetKeyDown(KeyCode.RightControl) && Input.GetKeyDown(KeyCode.Keypad5))
             {
                 if (!showUI)
                 {
@@ -76,6 +68,16 @@ namespace CommunityTools
                 if (!showUI)
                 {
                     EnableCursor(false);
+                }
+            }
+
+            // To make a quick bug report, if the mod option has been activated, press Keypad6
+            if (!showUI && IsActivated && m_quickReportsEnabled)
+            {
+                if (Input.GetKeyDown(KeyCode.Keypad6))
+                {
+                    InitData();
+                    CreateBugReports();
                 }
             }
         }
@@ -149,6 +151,8 @@ namespace CommunityTools
 
         private static void InitData()
         {
+            DebugUtils.Assert($"{nameof(CommunityTools)}.{nameof(CommunityToolsModule)}:{nameof(InitData)}", false);
+
             bugReportInfo = new BugReportInfo();
 
             itemsManager = ItemsManager.Get();
@@ -162,48 +166,50 @@ namespace CommunityTools
 
         private void InitModUI()
         {
-            GUI.Box(new Rect(10f, 10f, 300f, 1050f), "Community Tools - Bug report form", GUI.skin.window);
+            GUI.Box(new Rect(10f, 10f, 400f, 950f), "Community tools - bug report form", windowStyle);
 
             // Label Topic Description
-            GUI.Label(new Rect(30f, 20f, 20f, 20f), "Topic description", labelStyle);
+            GUI.Label(new Rect(30f, 20f, 200f, 20f), "Topic description", labelStyle);
             //Topic Description
             m_TopicDescription = GUI.TextField(new Rect(230f, 20f, 200f, 20f), m_TopicDescription, textFieldStyle);
 
             // Label Bug Report Type
-            GUI.Label(new Rect(30f, 40f, 20f, 20f), "Bug Report Type", labelStyle);
+            GUI.Label(new Rect(30f, 40f, 200f, 20f), "Bug report type", labelStyle);
             //Bug Report Type
-            m_SelectedBugReportType = GUI.TextField(new Rect(230f, 40f, 200f, 20f), m_SelectedBugReportType, textFieldStyle);
+            m_BugReportType = GUI.TextField(new Rect(230f, 40f, 200f, 20f), m_BugReportType, textFieldStyle);
 
             // Label Bug Description
-            GUI.Label(new Rect(30f, 60f, 20f, 20f), "Description", labelStyle);
+            GUI.Label(new Rect(30f, 60f, 200f, 200f), "Description", labelStyle);
             // Bug Description
             m_Description = GUI.TextArea(new Rect(230f, 60f, 200f, 200f), m_Description, textAreaStyle);
 
             // Label Steps To Reproduce
-            GUI.Label(new Rect(30f, 260f, 20f, 20f), "Steps to reproduce", labelStyle);
+            GUI.Label(new Rect(30f, 260f, 200f, 200f), "Steps to reproduce", labelStyle);
             // Steps to reproduce
             m_StepsToReproduce = GUI.TextArea(new Rect(230f, 260f, 200f, 200f), m_StepsToReproduce, textAreaStyle);
 
             // Bug Reproduce Rate
-            GUI.Label(new Rect(30f, 460f, 20f, 20f), "Reproduce rate", labelStyle);
+            GUI.Label(new Rect(30f, 460f, 200f, 20f), "Reproduce rate", labelStyle);
             //Bug Report Type
-            m_SelectedReproduceRate = GUI.TextField(new Rect(230f, 460f, 200f, 20f), m_SelectedReproduceRate, textFieldStyle);
+            m_ReproduceRate = GUI.TextField(new Rect(230f, 460f, 200f, 20f), m_ReproduceRate, textFieldStyle);
 
             // Label Expected Behaviour
-            GUI.Label(new Rect(30f, 480f, 20f, 20f), "Expected behaviour", labelStyle);
+            GUI.Label(new Rect(30f, 480f, 200f, 200f), "Expected behaviour", labelStyle);
             //Expected Behaviour
             m_ExpectedBehaviour = GUI.TextArea(new Rect(230f, 480f, 200f, 200f), m_ExpectedBehaviour, textAreaStyle);
 
             // Label Note
-            GUI.Label(new Rect(30f, 680f, 20f, 20f), "Note", labelStyle);
+            GUI.Label(new Rect(30f, 680f, 200f, 200f), "Note", labelStyle);
             //Note
             m_Note = GUI.TextArea(new Rect(230f, 680f, 200f, 200f), m_Note, textAreaStyle);
 
             //Enable or disable quick bug reports
-            m_quickReportsEnabled = GUI.Toggle(new Rect(30f, 880f, 200f, 20f), m_quickReportsEnabled, "Quick reports ON/OFF (Press Keypad 5)", toggleStyle);
+            m_quickReportsEnabled = GUI.Toggle(new Rect(30f, 880f, 300f, 20f), m_quickReportsEnabled, "Quick reports ON/OFF", toggleStyle);
+            // Label Toggle Quick Report
+            GUI.Label(new Rect(30f, 900f, 300f, 20f), " When enabled, press numerical keypad 5 to make a quick bug report.", labelStyle);
 
             // Create Bug Report Button
-            if (GUI.Button(new Rect(30f, 900f, 200f, 20f), "Create bug report", GUI.skin.button))
+            if (GUI.Button(new Rect(30f, 920f, 200f, 20f), "Create bug report", buttonStyle))
             {
                 OnClickCreateBugReportButton();
                 showUI = false;
@@ -219,44 +225,53 @@ namespace CommunityTools
             }
             catch (Exception exc)
             {
-                ModAPI.Log.Write($"[{nameof(CommunityToolsModule)}.{nameof(CommunityToolsModule)}:{nameof(OnClickCreateBugReportButton)}] throws exception: {exc.Message}");
+                ModAPI.Log.Write($"[{nameof(CommunityTools)}.{nameof(CommunityToolsModule)}:{nameof(OnClickCreateBugReportButton)}] throws exception: {exc.Message}");
             }
         }
 
         private void CreateBugReports()
         {
             string timeStamp = DateTime.Now.ToString("yyyyMMddThhmmmsZ");
-            string htmlReportName = $"{nameof(BugReportInfo)}.{timeStamp}.html";
-            string jsonReportName = $"{nameof(BugReportInfo)}.{timeStamp}.json";
-
-            SetBugReport();
+            string htmlReportName = $"{nameof(BugReportInfo)}_{timeStamp}.html";
+            string jsonReportName = $"{nameof(BugReportInfo)}_{timeStamp}.json";
 
             if (FileWrite(htmlReportName, CreateBugReportAsHtml()))
             {
-                ShowHUDBigInfo($"Report name {htmlReportName}", "New bug report created", HUDInfoLogTextureType.Count.ToString());
+                ShowHUDInfoLog($"{htmlReportName}", "HUDConstruction_Created");
             }
 
             if (FileWrite(jsonReportName, GetBugReportAsJSON()))
             {
-                ShowHUDBigInfo($"Report name {jsonReportName}", "New bug report created", HUDInfoLogTextureType.Count.ToString());
+                ShowHUDInfoLog($"{jsonReportName}", "HUDConstruction_Created");
             }
         }
 
-        private static void SetBugReport()
+        private void CreateLocalizedTextGameReport()
+        {
+            string timeStamp = DateTime.Now.ToString("yyyyMMddThhmmmsZ");
+            string localizedTextsGameReport = $"LocalizedTexts.{timeStamp}.log";
+
+            if (FileWrite(localizedTextsGameReport, CreateLocalizedTextGameReportAsText()))
+            {
+                ShowHUDInfoLog($"Report name {localizedTextsGameReport}", "HUD_InfoLog_NewEntry");
+            }
+        }
+
+        private static BugReportInfo SetBugReport()
         {
             player.GetGPSCoordinates(out int gps_lat, out int gps_long);
 
-            bugReportInfo = new BugReportInfo
+            return new BugReportInfo
             {
                 Topic = new Topic
                 {
                     GameVersion = GreenHellGame.s_GameVersion.WithBuildVersionToString(),
                     Description = m_TopicDescription
                 },
-                BugReportType = m_SelectedBugReportType,
+                BugReportType = m_BugReportType,
                 Description = m_Description,
                 StepsToReproduce = GetStepsToReproduce(),
-                ReproduceRate = m_SelectedReproduceRate,
+                ReproduceRate = m_ReproduceRate,
                 ExpectedBehaviour = m_ExpectedBehaviour,
                 PcSpecs = new PcSpecs
                 {
@@ -272,21 +287,30 @@ namespace CommunityTools
                 },
                 Note = m_Note
             };
-
         }
 
-        public static void ShowHUDBigInfo(string text, string header, string textureName)
+        protected static void ShowHUDBigInfo(string text, string header, string textureName)
         {
-            HUDBigInfo bigInfo = (HUDBigInfo)hUDManager.GetHUD(typeof(HUDBigInfo));
-            HUDBigInfoData bigInfoData = new HUDBigInfoData
+            var localization = GreenHellGame.Instance.GetLocalization();
+            HUDBigInfo hUDBigInfo = (HUDBigInfo)hUDManager.GetHUD(typeof(HUDBigInfo));
+            HUDBigInfoData hUDBigInfoData = new HUDBigInfoData
             {
                 m_Header = header,
-                m_Text = GreenHellGame.Instance.GetLocalization().Get(text),
+                m_Text = localization.Get(text),
                 m_TextureName = textureName,
                 m_ShowTime = Time.time
             };
-            bigInfo.AddInfo(bigInfoData);
-            bigInfo.Show(true);
+            hUDBigInfo.AddInfo(hUDBigInfoData);
+            hUDBigInfo.Show(true);
+        }
+
+        protected static void ShowHUDInfoLog(string text, string key)
+        {
+            var localization = GreenHellGame.Instance.GetLocalization();
+            HUDMessages hUDMessages = (HUDMessages)hUDManager.GetHUD(typeof(HUDMessages));
+            hUDMessages.AddMessage(
+                $"{localization.Get(key)}  {localization.Get(text)} "
+                );
         }
 
         private static List<StepToReproduce> GetStepsToReproduce()
@@ -317,8 +341,43 @@ namespace CommunityTools
             return list;
         }
 
+        protected string CreateLocalizedTextGameReportAsText(string valueFilter = "")
+        {
+            string localizedTexts = $"Localized Texts";
+            try
+            {
+                var localization = GreenHellGame.Instance.GetLocalization();
+                var texts = localization.GetLocalizedtexts();
+                SortedDictionary<string, string> filteredTexts = new SortedDictionary<string, string>();
+
+                foreach (var pair in texts)
+                {
+                    if (pair.Value.Contains(valueFilter))
+                    {
+                        filteredTexts.Add(pair.Key, pair.Value);
+                    }
+                }
+
+                foreach (var filteredPair in filteredTexts)
+                {
+                    localizedTexts += $"\n\t\tKey : {filteredPair.Key}\n\t\tValue : {filteredPair.Value}";
+                }
+
+                return localizedTexts;
+            }
+            catch (Exception exc)
+            {
+                ModAPI.Log.Write($"[{nameof(CommunityTools)}.{nameof(CommunityToolsModule)}:{nameof(CreateLocalizedTextGameReportAsText)}] throws exception: {exc.Message}");
+                return localizedTexts;
+            }
+        }
+
         protected string CreateBugReportAsHtml()
         {
+            if (bugReportInfo == null)
+            {
+                bugReportInfo = SetBugReport();
+            }
             StringBuilder bugReportBuilder = new StringBuilder("<!DOCTYPE html>");
             try
             {
@@ -366,6 +425,10 @@ namespace CommunityTools
 
         protected string GetBugReportAsJSON()
         {
+            if (bugReportInfo == null)
+            {
+                bugReportInfo = SetBugReport();
+            }
             string steps = $"";
             string reportTemplate = $"";
             try
@@ -385,13 +448,15 @@ namespace CommunityTools
                     $"\"GameVersion\": \"{bugReportInfo.Topic?.GameVersion}\"," +
                     $"\"Description\": \"{bugReportInfo.Topic?.Description}\"" +
                     $"}}," +
-                    $" \"Type\": \"{bugReportInfo.BugReportType.ToString()}\"," +
-                    $" \"Description\": \"{bugReportInfo.Description}\"," +
-                    $"\"StepsToReproduce\": [{steps}]," +
+                    $"\"Type\": \"{bugReportInfo.BugReportType.ToString()}\"," +
+                    $"\"Description\": \"{bugReportInfo.Description}\"," +
+                    $"\"StepsToReproduce\": [" +
+                    $"{steps}" +
+                    $"]," +
                     $"\"ReproduceRate\": \"{bugReportInfo.ReproduceRate.ToString()}\"," +
                     $"\"ExpectedBehaviour\": \"{bugReportInfo.ExpectedBehaviour}\"," +
                     $"\"PcSpecs\":" +
-                    $" {{" +
+                    $"{{" +
                     $"\"OS\": \"{bugReportInfo.PcSpecs?.OS}\"," +
                     $"\"CPU\": \"{bugReportInfo.PcSpecs?.CPU}\"," +
                     $"\"GPU\": \"{bugReportInfo.PcSpecs?.GPU}\"," +
@@ -405,7 +470,7 @@ namespace CommunityTools
             }
             catch (Exception exc)
             {
-                ModAPI.Log.Write($"[{nameof(CommunityToolsModule)}.{nameof(CommunityToolsModule)}:{nameof(GetBugReportAsJSON)}] throws exception: {exc.Message}");
+                ModAPI.Log.Write($"[{nameof(CommunityTools)}.{nameof(CommunityToolsModule)}:{nameof(GetBugReportAsJSON)}] throws exception: {exc.Message}");
                 return reportTemplate;
             }
         }
@@ -435,7 +500,7 @@ namespace CommunityTools
             }
             catch (Exception exc)
             {
-                ModAPI.Log.Write($"[{nameof(CommunityToolsModule)}.{nameof(CommunityToolsModule)}:{nameof(FileWrite)}] throws exception: {exc.Message}");
+                ModAPI.Log.Write($"[{nameof(CommunityTools)}.{nameof(CommunityToolsModule)}:{nameof(FileWrite)}] throws exception: {exc.Message}");
                 return false;
             }
         }
