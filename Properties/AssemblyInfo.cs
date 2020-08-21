@@ -5,11 +5,11 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("CommunityTools")]
-[assembly: AssemblyDescription("CommunityTools is a mod for Green Hell that aims to be a tool for the gamer community. For now, it helps in creating a bug report. Output can be found in the game installation data folder in subfolder Logs.")]
+[assembly: AssemblyTitle("ModAPI.CommunityTools")]
+[assembly: AssemblyDescription("CommunityTools is a mod for Green Hell that aims to be a tool for the gamer community and modders. For now, it helps in getting game metadata and creating a bug report. Output can be found in the game installation data folder in subfolder Logs.")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("Spawn Area - Dragon Legion")]
-[assembly: AssemblyProduct("CommunityTools.CommunityToolsMod")]
+[assembly: AssemblyCompany("Dragon Legion")]
+[assembly: AssemblyProduct("ModAPI.CommunityTools")]
 [assembly: AssemblyCopyright("Copyright ©  2020")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
@@ -29,5 +29,5 @@ using System.Runtime.InteropServices;
 //      Build Number
 //      Revision
 //
-[assembly: AssemblyVersion("1.0.0.0")]
-[assembly: AssemblyFileVersion("1.0.0.0")]
+[assembly: AssemblyVersion("1.0.2.1")]
+[assembly: AssemblyFileVersion("1.0.2.1")]

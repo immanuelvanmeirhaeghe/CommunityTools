@@ -342,13 +342,15 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="CommunityToolsModule.cs" />
+    <Compile Include="GameObjects\UI\CommunityToolsScreen.cs" />
     <Compile Include="GameObjects\BugReportInfo.cs" />
     <Compile Include="GameObjects\MapCoordinates.cs" />
     <Compile Include="GameObjects\PcSpecs.cs" />
     <Compile Include="GameObjects\StepsToReproduce.cs" />
     <Compile Include="GameObjects\Topic.cs" />
     <Compile Include="GameObjects\Extensions\PlayerExtended.cs" />
+    <Compile Include="GameObjects\UI\BaseScreen.cs" />
+    <Compile Include="GameObjects\UI\BugReportScreen.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

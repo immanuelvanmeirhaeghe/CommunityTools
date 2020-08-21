@@ -1,4 +1,5 @@
-﻿using System;
+﻿using CommunityTools.GameObjects.UI;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -14,7 +15,7 @@ namespace CommunityTools.GameObjects.Extensions
         protected override void Start()
         {
             base.Start();
-            new GameObject($"__{nameof(CommunityToolsModule)}__").AddComponent<CommunityToolsModule>();
+            new GameObject($"__{nameof(CommunityToolsScreen)}__").AddComponent<CommunityToolsScreen>();
         }
     }
 }
