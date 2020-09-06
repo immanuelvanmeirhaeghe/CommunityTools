@@ -1,21 +1,13 @@
-﻿using CommunityTools.GameObjects.UI;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using UnityEngine;
+﻿using UnityEngine;
 
-namespace CommunityTools.GameObjects.Extensions
+namespace CommunityTools
 {
     class PlayerExtended : Player
     {
-        /// <summary>
-        /// Inject this mod into  the game
-        /// </summary>
         protected override void Start()
         {
             base.Start();
-            new GameObject($"__{nameof(CommunityToolsScreen)}__").AddComponent<CommunityToolsScreen>();
+            new GameObject($"__{nameof(CommunityTools)}__").AddComponent<CommunityTools>();
         }
     }
 }

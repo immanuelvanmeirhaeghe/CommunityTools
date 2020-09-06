@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Text;
 using UnityEngine;
 
@@ -10,6 +12,19 @@ namespace CommunityTools.GameObjects
     class BugReportInfo : MonoBehaviour
     {
         private static BugReportInfo s_Instance;
+
+        public enum BugReportField
+        {
+            Topic,
+            BugReportType,
+            Description,
+            StepsToReproduce,
+            ReproduceRate,
+            ExpectedBehaviour,
+            PcSpecs,
+            MapCoordinates,
+            Note
+        }
 
         public BugReportInfo()
         {
