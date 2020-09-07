@@ -37,14 +37,13 @@ namespace CommunityTools
         public string SteamForumGuideUrl { get; private set; }
         public string CreepyJarContactEmail { get; private set; }
 
-
-        private static string m_BugReportType = $"| UI | Crafting | Building | Multiplayer | Save Game | Items | Inventory | Other |";
-        private static string m_ReproduceRate = $"At least once";
-        private static string m_TopicDescription = $"Short topic describing the bug.";
-        private static string m_Description = $"The description of the bug.";
-        private static string m_ExpectedBehaviour = $"Describe what you would have expected to happen in stead.";
-        private static string m_StepsToReproduce = $"Use a semi-colon to separate each step description like this.; Then this is step 2.; And this will become step 3.";
-        private static string m_Note = $"You can add any additional info here, like links to screenshots.";
+        private static string BugReportType = $"| UI | Crafting | Building | Multiplayer | Save Game | Items | Inventory | Other |";
+        private static string ReproduceRate = $"At least once";
+        private static string TopicDescription = $"Short topic describing the bug.";
+        private static string Description = $"The description of the bug.";
+        private static string ExpectedBehaviour = $"Describe what you would have expected to happen in stead.";
+        private static string StepsToReproduce = $"Use a semi-colon to separate each step description like this.; Then this is step 2.; And this will become step 3.";
+        private static string Note = $"You can add any additional info here, like links to screenshots.";
         private static bool QuickReportsEnabled = false;
 
         public CommunityTools()
@@ -149,14 +148,14 @@ namespace CommunityTools
 
         private void InitCommunityToolsScreen(int windowID)
         {
-            using (var verticalScope = new GUILayout.VerticalScope($"{ModName}box"))
+            using (var verticalScope = new GUILayout.VerticalScope(GUI.skin.box))
             {
                 if (GUI.Button(new Rect(430f, 0f, 20f, 20f), "X", GUI.skin.button))
                 {
                     CloseWindow();
                 }
 
-                using (var horizontalScope = new GUILayout.HorizontalScope("contactBox"))
+                using (var horizontalScope = new GUILayout.HorizontalScope(GUI.skin.box))
                 {
                     GUILayout.Label("Click to send your question by mail to Creepy Jar Help", GUI.skin.label);
                     if (GUILayout.Button("Send mail", GUI.skin.button))
@@ -166,7 +165,7 @@ namespace CommunityTools
                     }
                 }
 
-                using (var horizontalScope = new GUILayout.HorizontalScope("guideBox"))
+                using (var horizontalScope = new GUILayout.HorizontalScope(GUI.skin.box))
                 {
                     GUILayout.Label("Try to find help online on Steam ", GUI.skin.label);
                     if (GUILayout.Button("Open guide", GUI.skin.button))
@@ -176,7 +175,7 @@ namespace CommunityTools
                     }
                 }
 
-                using (var horizontalScope = new GUILayout.HorizontalScope("forumBox"))
+                using (var horizontalScope = new GUILayout.HorizontalScope(GUI.skin.box))
                 {
                     GUILayout.Label("Look at the reported bugs on Steam ", GUI.skin.label);
                     if (GUILayout.Button("Open forum", GUI.skin.button))
@@ -186,13 +185,13 @@ namespace CommunityTools
                     }
                 }
 
-                using (var horizontalScope = new GUILayout.HorizontalScope("quickoptBox"))
+                using (var horizontalScope = new GUILayout.HorizontalScope(GUI.skin.box))
                 {
                     GUILayout.Label(" When enabled, press numerical keypad 5 to make a quick bug report.", GUI.skin.label);
                     QuickReportsEnabled = GUILayout.Toggle(QuickReportsEnabled, "", GUI.skin.toggle);
                 }
 
-                using (var horizontalScope = new GUILayout.HorizontalScope("reportBox"))
+                using (var horizontalScope = new GUILayout.HorizontalScope(GUI.skin.box))
                 {
                     GUILayout.Label("Click to create a bug report", GUI.skin.label);
                     if (GUILayout.Button("Create report", GUI.skin.button))
@@ -212,53 +211,53 @@ namespace CommunityTools
 
         private void InitCommunityToolsBugReportScreen(int windowID)
         {
-            using (var verticalScope = new GUILayout.VerticalScope($" {nameof(CommunityToolsBugReportScreen)}box"))
+            using (var verticalScope = new GUILayout.VerticalScope(GUI.skin.box))
             {
                 if (GUI.Button(new Rect(430f, 0f, 20f, 20f), "X", GUI.skin.button))
                 {
                     CloseWindow();
                 }
 
-                using (var horizontalScope = new GUILayout.HorizontalScope($"{BugReportInfo.BugReportField.Topic}Box"))
+                using (var horizontalScope = new GUILayout.HorizontalScope(GUI.skin.box))
                 {
                     GUILayout.Label("Topic description: ", GUI.skin.label);
-                    m_TopicDescription = GUILayout.TextField(m_TopicDescription, GUI.skin.textField);
+                    TopicDescription = GUILayout.TextField(TopicDescription, GUI.skin.textField);
                 }
 
-                using (var horizontalScope = new GUILayout.HorizontalScope($"{BugReportInfo.BugReportField.BugReportType}Box"))
+                using (var horizontalScope = new GUILayout.HorizontalScope(GUI.skin.box))
                 {
                     GUILayout.Label("Bug report type: ", GUI.skin.label);
-                    m_BugReportType = GUILayout.TextField(m_BugReportType, GUI.skin.textField);
+                    BugReportType = GUILayout.TextField(BugReportType, GUI.skin.textField);
                 }
 
-                using (var horizontalScope = new GUILayout.HorizontalScope($"{BugReportInfo.BugReportField.Description}Box"))
+                using (var horizontalScope = new GUILayout.HorizontalScope(GUI.skin.box))
                 {
                     GUILayout.Label("Description: ", GUI.skin.label);
-                    m_Description = GUILayout.TextArea(m_Description, GUI.skin.textArea);
+                    Description = GUILayout.TextArea(Description, GUI.skin.textArea);
                 }
 
-                using (var horizontalScope = new GUILayout.HorizontalScope($"{BugReportInfo.BugReportField.StepsToReproduce}Box"))
+                using (var horizontalScope = new GUILayout.HorizontalScope(GUI.skin.box))
                 {
                     GUILayout.Label("Steps to reproduce: ", GUI.skin.label);
-                    m_StepsToReproduce = GUILayout.TextArea(m_StepsToReproduce, GUI.skin.textArea);
+                    StepsToReproduce = GUILayout.TextArea(StepsToReproduce, GUI.skin.textArea);
                 }
 
-                using (var horizontalScope = new GUILayout.HorizontalScope($"{BugReportInfo.BugReportField.ReproduceRate}Box"))
+                using (var horizontalScope = new GUILayout.HorizontalScope(GUI.skin.box))
                 {
                     GUILayout.Label("Reproduce rate: ", GUI.skin.label);
-                    m_ReproduceRate = GUILayout.TextField(m_ReproduceRate, GUI.skin.textField);
+                    ReproduceRate = GUILayout.TextField(ReproduceRate, GUI.skin.textField);
                 }
 
-                using (var horizontalScope = new GUILayout.HorizontalScope($"{BugReportInfo.BugReportField.ExpectedBehaviour}Box"))
+                using (var horizontalScope = new GUILayout.HorizontalScope(GUI.skin.box))
                 {
                     GUILayout.Label("Expected behaviour: ", GUI.skin.label);
-                    m_ExpectedBehaviour = GUILayout.TextArea(m_ExpectedBehaviour, GUI.skin.textArea);
+                    ExpectedBehaviour = GUILayout.TextArea(ExpectedBehaviour, GUI.skin.textArea);
                 }
 
-                using (var horizontalScope = new GUILayout.HorizontalScope($"{BugReportInfo.BugReportField.Note}Box"))
+                using (var horizontalScope = new GUILayout.HorizontalScope(GUI.skin.box))
                 {
                     GUILayout.Label("Notes: ", GUI.skin.label);
-                    m_Note = GUILayout.TextArea(m_Note, GUI.skin.textArea);
+                    Note = GUILayout.TextArea(Note, GUI.skin.textArea);
                 }
 
                 CreateBugReportButton();
@@ -329,13 +328,13 @@ namespace CommunityTools
             {
                 bug = new BugReportInfo
                 {
-                    Topic = BugReportInfo.GetTopic(m_TopicDescription),
-                    BugReportType = m_BugReportType,
-                    Description = m_Description,
-                    StepsToReproduce = BugReportInfo.GetStepsToReproduce(m_StepsToReproduce),
-                    ExpectedBehaviour = m_ExpectedBehaviour,
+                    Topic = BugReportInfo.GetTopic(TopicDescription),
+                    BugReportType = BugReportType,
+                    Description = Description,
+                    StepsToReproduce = BugReportInfo.GetStepsToReproduce(StepsToReproduce),
+                    ExpectedBehaviour = ExpectedBehaviour,
                     MapCoordinates = BugReportInfo.GetMapCoordinates(player),
-                    Note = BugReportInfo.GetScreenshotInfo(m_Note),
+                    Note = BugReportInfo.GetScreenshotInfo(Note),
                     PcSpecs = BugReportInfo.GetPcSpecs()
                 };
 
