@@ -21,6 +21,9 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
+  <PropertyGroup>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+  </PropertyGroup>
   <ItemGroup>
   </ItemGroup>
   <ItemGroup>
@@ -56,7 +59,7 @@
       <HintPath>../../../modlib/GH/GH_data/Managed/EasyRagdollCreatorLib.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="ModManager, Version=1.0.2.1, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="ModManager, Version=1.0.2.5, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\libs\ModManager.dll</HintPath>
     </Reference>

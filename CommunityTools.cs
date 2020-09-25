@@ -15,11 +15,13 @@ namespace CommunityTools
         private static readonly string ReportPath = $"{Application.dataPath}/Mods/{ModName}/Logs/";
         public static string ReportFile { get; set; }
 
-        private bool showUI = false;
+        private bool ShowUI = false;
 
-        public Rect CommunityToolsScreen = new Rect(1000f, 500f, 450f, 150f);
+        private bool ShowBugUI = false;
 
-        public Rect CommunityToolsBugReportScreen = new Rect(1000f, 500f, 450f, 150f);
+        public static Rect CommunityToolsScreen = new Rect(1000f, 500f, 450f, 150f);
+
+        public static Rect CommunityToolsBugReportScreen = new Rect(1000f, 500f, 450f, 150f);
 
         private static ItemsManager itemsManager;
 
@@ -27,11 +29,21 @@ namespace CommunityTools
 
         private static HUDManager hUDManager;
 
-        private BugReportInfo bug;
+        private static BugReportInfo BugReportInfo;
 
-        public bool IsModActiveForMultiplayer => FindObjectOfType(typeof(ModManager.ModManager)) != null && ModManager.ModManager.AllowModsForMultiplayer;
+        private bool _isActiveForMultiplayer;
+        public bool IsModActiveForMultiplayer
+        {
+            get => _isActiveForMultiplayer;
+            set => _isActiveForMultiplayer = FindObjectOfType(typeof(ModManager.ModManager)) != null && ModManager.ModManager.AllowModsForMultiplayer;
+        }
 
-        public bool IsModActiveForSingleplayer => ReplTools.AmIMaster();
+        private bool _isActiveForSingleplayer;
+        public bool IsModActiveForSingleplayer
+        {
+            get => _isActiveForSingleplayer;
+            set => _isActiveForSingleplayer = ReplTools.AmIMaster();
+        }
 
         public string SteamForumBugReportUrl { get; private set; }
         public string SteamForumGuideUrl { get; private set; }
@@ -104,23 +116,54 @@ namespace CommunityTools
         {
             if (Input.GetKeyDown(KeyCode.Home))
             {
-                if (!showUI)
+                if (!ShowUI)
                 {
                     InitData();
                     EnableCursor(true);
                 }
-                // toggle menu
-                showUI = !showUI;
-                if (!showUI)
+                ToggleShowUI(0);
+                if (!ShowUI)
                 {
                     EnableCursor(false);
                 }
+            }
+
+            if ((IsModActiveForSingleplayer || IsModActiveForMultiplayer) && QuickReportsEnabled && Input.GetKeyDown(KeyCode.Keypad5))
+            {
+                if (!ShowBugUI)
+                {
+                    InitData();
+                    EnableCursor(true);
+                }
+                ToggleShowUI(1);
+                if (!ShowBugUI)
+                {
+                    EnableCursor(false);
+                }
+            }
+
+        }
+
+        private void ToggleShowUI(int level = 0)
+        {
+            switch (level)
+            {
+                case 0:
+                    ShowUI = !ShowUI;
+                    break;
+                case 1:
+                    ShowBugUI = !ShowBugUI;
+                    break;
+                default:
+                    ShowUI = !ShowUI;
+                    ShowBugUI = !ShowBugUI;
+                    break;
             }
         }
 
         private void OnGUI()
         {
-            if (showUI)
+            if (ShowUI || ShowBugUI)
             {
                 InitData();
                 InitSkinUI();
@@ -142,8 +185,20 @@ namespace CommunityTools
 
         private void InitWindow()
         {
-            int wid = GetHashCode();
-            CommunityToolsScreen = GUILayout.Window(wid, CommunityToolsScreen, InitCommunityToolsScreen, $"{ModName}", GUI.skin.window);
+            if (ShowUI)
+            {
+                ShowCommunityToolsScreen();
+            }
+
+            if (ShowBugUI)
+            {
+                ShowBugReportScreen();
+            }
+        }
+
+        private void ShowCommunityToolsScreen()
+        {
+            CommunityToolsScreen = GUILayout.Window(GetHashCode(), CommunityToolsScreen, InitCommunityToolsScreen, $"{ModName}", GUI.skin.window);
         }
 
         private void InitCommunityToolsScreen(int windowID)
@@ -185,10 +240,10 @@ namespace CommunityTools
                     }
                 }
 
-                using (var horizontalScope = new GUILayout.HorizontalScope(GUI.skin.box))
+                using (var vertical2Scope = new GUILayout.VerticalScope(GUI.skin.box))
                 {
                     GUILayout.Label(" When enabled, press numerical keypad 5 to make a quick bug report.", GUI.skin.label);
-                    QuickReportsEnabled = GUILayout.Toggle(QuickReportsEnabled, "", GUI.skin.toggle);
+                    QuickReportsEnabled = GUILayout.Toggle(QuickReportsEnabled, $"Enable quick reports? ", GUI.skin.toggle);
                 }
 
                 using (var horizontalScope = new GUILayout.HorizontalScope(GUI.skin.box))
@@ -196,6 +251,7 @@ namespace CommunityTools
                     GUILayout.Label("Click to create a bug report", GUI.skin.label);
                     if (GUILayout.Button("Create report", GUI.skin.button))
                     {
+                        CloseWindow();
                         ShowBugReportScreen();
                     }
                 }
@@ -205,8 +261,7 @@ namespace CommunityTools
 
         private void ShowBugReportScreen()
         {
-            int wid = GetHashCode();
-            CommunityToolsBugReportScreen = GUILayout.Window(wid, CommunityToolsBugReportScreen, InitCommunityToolsBugReportScreen, $"{ModName} - {nameof(CommunityToolsBugReportScreen)}", GUI.skin.window);
+            CommunityToolsBugReportScreen = GUILayout.Window(GetHashCode(), CommunityToolsBugReportScreen, InitCommunityToolsBugReportScreen, $"{ModName} - {nameof(CommunityToolsBugReportScreen)}", GUI.skin.window);
         }
 
         private void InitCommunityToolsBugReportScreen(int windowID)
@@ -267,7 +322,8 @@ namespace CommunityTools
 
         private void CloseWindow()
         {
-            showUI = false;
+            ShowUI = false;
+            ShowBugUI = false;
             EnableCursor(false);
         }
 
@@ -275,7 +331,7 @@ namespace CommunityTools
         {
             if (IsModActiveForSingleplayer || IsModActiveForMultiplayer)
             {
-                using (var horizontalScope = new GUILayout.HorizontalScope("repActionBox"))
+                using (var horizontalScope = new GUILayout.HorizontalScope(GUI.skin.box))
                 {
                     if (GUILayout.Button("Create bug report", GUI.skin.button))
                     {
@@ -286,7 +342,7 @@ namespace CommunityTools
             }
             else
             {
-                using (var verticalScope = new GUILayout.VerticalScope("repInfoBox"))
+                using (var verticalScope = new GUILayout.VerticalScope(GUI.skin.box))
                 {
                     GUILayout.Label("Feature", GUI.skin.label);
                     GUILayout.Label("is only for single player or when host.", GUI.skin.label);
@@ -326,7 +382,7 @@ namespace CommunityTools
         {
             try
             {
-                bug = new BugReportInfo
+                BugReportInfo = new BugReportInfo
                 {
                     Topic = BugReportInfo.GetTopic(TopicDescription),
                     BugReportType = BugReportType,
@@ -409,7 +465,7 @@ namespace CommunityTools
                    $"{ModName} Info",
                    HUDInfoLogTextureType.Count.ToString());
 
-                //Application.OpenURL(ReportFile);
+               Application.OpenURL(ReportFile);
             }
 
             if (FileWrite(jsonReportName, GetBugReportAsJSON()))
@@ -419,7 +475,7 @@ namespace CommunityTools
                    $"{ModName} Info",
                    HUDInfoLogTextureType.Count.ToString());
 
-                //Application.OpenURL(ReportFile);
+               Application.OpenURL(ReportFile);
             }
         }
 
@@ -432,31 +488,31 @@ namespace CommunityTools
                                                                             $"  <head>" +
                                                                             $"      <meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\">" +
                                                                             $"      <title>" +
-                                                                            $"         {bug.Topic?.GameVersion}] - {bug.Topic?.Description} :: Green Hell Bug Reports" +
+                                                                            $"         {BugReportInfo.Topic?.GameVersion}] - {BugReportInfo.Topic?.Description} :: Green Hell Bug Reports" +
                                                                             $"      </title>" +
                                                                             $"  </head>" +
                                                                             $"  <body>" +
                                                                             $"      <div class=\"topic\">" +
-                                                                            $"          [{bug.Topic?.GameVersion}] - {bug.Topic?.Description}" +
+                                                                            $"          [{BugReportInfo.Topic?.GameVersion}] - {BugReportInfo.Topic?.Description}" +
                                                                             $"      </div>" +
                                                                             $"      <div class=\"content\">" +
-                                                                            $"          <br>Type: {bug.BugReportType}" +
-                                                                            $"          <br>Description: {bug.Description}" +
+                                                                            $"          <br>Type: {BugReportInfo.BugReportType}" +
+                                                                            $"          <br>Description: {BugReportInfo.Description}" +
                                                                             $"          <ul>Steps to Reproduce:");
-                foreach (var step in bug.StepsToReproduce)
+                foreach (var step in BugReportInfo.StepsToReproduce)
                 {
                     bugReportBuilder.AppendLine($"          <li>Step {step.Rank}: {step.Description}</li>");
                 }
                 bugReportBuilder.AppendLine($"             </ul>" +
-                                                                        $"               <br>Reproduce rate: {bug.ReproduceRate}" +
-                                                                        $"               <br>Expected behaviour: {bug.ExpectedBehaviour}" +
+                                                                        $"               <br>Reproduce rate: {BugReportInfo.ReproduceRate}" +
+                                                                        $"               <br>Expected behaviour: {BugReportInfo.ExpectedBehaviour}" +
                                                                         $"              <ul>My PC spec:" +
-                                                                        $"                  <li>OS: {bug.PcSpecs?.OS}</li>" +
-                                                                        $"                  <li>CPU: {bug.PcSpecs?.CPU}</li>" +
-                                                                        $"                  <li>GPU: {bug.PcSpecs?.GPU}</li>" +
-                                                                        $"                  <li>RAM: {bug.PcSpecs?.RAM}</li>" +
+                                                                        $"                  <li>OS: {BugReportInfo.PcSpecs?.OS}</li>" +
+                                                                        $"                  <li>CPU: {BugReportInfo.PcSpecs?.CPU}</li>" +
+                                                                        $"                  <li>GPU: {BugReportInfo.PcSpecs?.GPU}</li>" +
+                                                                        $"                  <li>RAM: {BugReportInfo.PcSpecs?.RAM}</li>" +
                                                                         $"              </ul>" +
-                                                                        $"              <br>Note:  {bug.Note}" +
+                                                                        $"              <br>Note:  {BugReportInfo.Note}" +
                                                                         $"          </div>" +
                                                                         $"      </body>" +
                                                                         $"</html>");
@@ -476,7 +532,7 @@ namespace CommunityTools
             string reportTemplate = $"";
             try
             {
-                foreach (var step in bug.StepsToReproduce)
+                foreach (var step in BugReportInfo.StepsToReproduce)
                 {
                     steps += $"" +
                         $"{{" +
@@ -488,25 +544,25 @@ namespace CommunityTools
                     $"{{" +
                     $"\"Topic\":" +
                     $"{{ " +
-                    $"\"GameVersion\": \"{bug.Topic?.GameVersion}\"," +
-                    $"\"Description\": \"{bug.Topic?.Description}\"" +
+                    $"\"GameVersion\": \"{BugReportInfo.Topic?.GameVersion}\"," +
+                    $"\"Description\": \"{BugReportInfo.Topic?.Description}\"" +
                     $"}}," +
-                    $"\"Type\": \"{bug.BugReportType}\"," +
-                    $"\"Description\": \"{bug.Description}\"," +
+                    $"\"Type\": \"{BugReportInfo.BugReportType}\"," +
+                    $"\"Description\": \"{BugReportInfo.Description}\"," +
                     $"\"StepsToReproduce\": [" +
                     $"{steps}" +
                     $"]," +
-                    $"\"ReproduceRate\": \"{bug.ReproduceRate}\"," +
-                    $"\"ExpectedBehaviour\": \"{bug.ExpectedBehaviour}\"," +
+                    $"\"ReproduceRate\": \"{BugReportInfo.ReproduceRate}\"," +
+                    $"\"ExpectedBehaviour\": \"{BugReportInfo.ExpectedBehaviour}\"," +
                     $"\"PcSpecs\":" +
                     $"{{" +
-                    $"\"OS\": \"{bug.PcSpecs?.OS}\"," +
-                    $"\"CPU\": \"{bug.PcSpecs?.CPU}\"," +
-                    $"\"GPU\": \"{bug.PcSpecs?.GPU}\"," +
-                    $"\"RAM\": \"{bug.PcSpecs?.RAM}\"" +
+                    $"\"OS\": \"{BugReportInfo.PcSpecs?.OS}\"," +
+                    $"\"CPU\": \"{BugReportInfo.PcSpecs?.CPU}\"," +
+                    $"\"GPU\": \"{BugReportInfo.PcSpecs?.GPU}\"," +
+                    $"\"RAM\": \"{BugReportInfo.PcSpecs?.RAM}\"" +
                     $"}}," +
-                    $"\"MapCoordinates\": \"{bug.MapCoordinates?.ToString()}\"," +
-                    $"\"Note\": \"{bug.Note}\"" +
+                    $"\"MapCoordinates\": \"{BugReportInfo.MapCoordinates?.ToString()}\"," +
+                    $"\"Note\": \"{BugReportInfo.Note}\"" +
                     $"}}";
 
                 return reportTemplate;
