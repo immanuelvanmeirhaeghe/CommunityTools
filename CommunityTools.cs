@@ -32,15 +32,13 @@ namespace CommunityTools
         private static BugReportInfo BugReportInfo;
 
         private bool _isActiveForMultiplayer;
-        public bool IsModActiveForMultiplayer
-        {
+        public bool IsModActiveForMultiplayer {
             get => _isActiveForMultiplayer;
             set => _isActiveForMultiplayer = FindObjectOfType(typeof(ModManager.ModManager)) != null && ModManager.ModManager.AllowModsForMultiplayer;
         }
 
         private bool _isActiveForSingleplayer;
-        public bool IsModActiveForSingleplayer
-        {
+        public bool IsModActiveForSingleplayer {
             get => _isActiveForSingleplayer;
             set => _isActiveForSingleplayer = ReplTools.AmIMaster();
         }
@@ -56,6 +54,7 @@ namespace CommunityTools
         private static string ExpectedBehaviour = $"Describe what you would have expected to happen in stead.";
         private static string StepsToReproduce = $"Use a semi-colon to separate each step description like this.; Then this is step 2.; And this will become step 3.";
         private static string Note = $"You can add any additional info here, like links to screenshots.";
+
         private static bool QuickReportsEnabled = false;
 
         public CommunityTools()
@@ -130,18 +129,9 @@ namespace CommunityTools
 
             if ((IsModActiveForSingleplayer || IsModActiveForMultiplayer) && QuickReportsEnabled && Input.GetKeyDown(KeyCode.Keypad5))
             {
-                if (!ShowBugUI)
-                {
-                    InitData();
-                    EnableCursor(true);
-                }
-                ToggleShowUI(1);
-                if (!ShowBugUI)
-                {
-                    EnableCursor(false);
-                }
+                InitData();
+                CreateBugReport();
             }
-
         }
 
         private void ToggleShowUI(int level = 0)
@@ -242,18 +232,8 @@ namespace CommunityTools
 
                 using (var vertical2Scope = new GUILayout.VerticalScope(GUI.skin.box))
                 {
-                    GUILayout.Label(" When enabled, press numerical keypad 5 to make a quick bug report.", GUI.skin.label);
-                    QuickReportsEnabled = GUILayout.Toggle(QuickReportsEnabled, $"Enable quick reports? ", GUI.skin.toggle);
-                }
-
-                using (var horizontalScope = new GUILayout.HorizontalScope(GUI.skin.box))
-                {
-                    GUILayout.Label("Click to create a bug report", GUI.skin.label);
-                    if (GUILayout.Button("Create report", GUI.skin.button))
-                    {
-                        CloseWindow();
-                        ShowBugReportScreen();
-                    }
+                    GUILayout.Label(" When enabled, press numerical keypad 5 to make a bug report.", GUI.skin.label);
+                    QuickReportsEnabled = GUILayout.Toggle(QuickReportsEnabled, $"Enable reports? ", GUI.skin.toggle);
                 }
             }
             GUI.DragWindow(new Rect(0f, 0f, 10000f, 10000f));
@@ -329,24 +309,12 @@ namespace CommunityTools
 
         private void CreateBugReportButton()
         {
-            if (IsModActiveForSingleplayer || IsModActiveForMultiplayer)
+            using (var horizontalScope = new GUILayout.HorizontalScope(GUI.skin.box))
             {
-                using (var horizontalScope = new GUILayout.HorizontalScope(GUI.skin.box))
+                if (GUILayout.Button("Create bug report", GUI.skin.button))
                 {
-                    if (GUILayout.Button("Create bug report", GUI.skin.button))
-                    {
-                        OnClickCreateBugReportButton();
-                        CloseWindow();
-                    }
-                }
-            }
-            else
-            {
-                using (var verticalScope = new GUILayout.VerticalScope(GUI.skin.box))
-                {
-                    GUILayout.Label("Feature", GUI.skin.label);
-                    GUILayout.Label("is only for single player or when host.", GUI.skin.label);
-                    GUILayout.Label("Host can activate using ModManager.", GUI.skin.label);
+                    OnClickCreateBugReportButton();
+                    CloseWindow();
                 }
             }
         }
@@ -365,16 +333,19 @@ namespace CommunityTools
 
         public void OnClickOpenSteamGuideButton()
         {
+            MainLevel.Instance.Pause(true);
             Application.OpenURL(SteamForumGuideUrl);
         }
 
         public void OnClickOpenSteamForumButton()
         {
+            MainLevel.Instance.Pause(true);
             Application.OpenURL(SteamForumBugReportUrl);
         }
 
         public void OnClickSendMailButton()
         {
+            MainLevel.Instance.Pause(true);
             Application.OpenURL(CreepyJarContactEmail);
         }
 
@@ -382,22 +353,11 @@ namespace CommunityTools
         {
             try
             {
-                BugReportInfo = new BugReportInfo
-                {
-                    Topic = BugReportInfo.GetTopic(TopicDescription),
-                    BugReportType = BugReportType,
-                    Description = Description,
-                    StepsToReproduce = BugReportInfo.GetStepsToReproduce(StepsToReproduce),
-                    ExpectedBehaviour = ExpectedBehaviour,
-                    MapCoordinates = BugReportInfo.GetMapCoordinates(player),
-                    Note = BugReportInfo.GetScreenshotInfo(Note),
-                    PcSpecs = BugReportInfo.GetPcSpecs()
-                };
+                BugReportInfo = new BugReportInfo();
 
                 CreateReports();
 
-                Application.OpenURL(SteamForumBugReportUrl);
-
+                OnClickOpenSteamForumButton();
             }
             catch (Exception exc)
             {
@@ -454,34 +414,41 @@ namespace CommunityTools
 
         private void CreateReports()
         {
-            string timeStamp = DateTime.Now.ToString("yyyyMMddThhmmmsZ");
-            string htmlReportName = $"{nameof(BugReportInfo)}_{timeStamp}.html";
-            string jsonReportName = $"{nameof(BugReportInfo)}_{timeStamp}.json";
+            //string timeStamp = DateTime.Now.ToString("yyyyMMddThhmmmsZ");
+            //string htmlReportName = $"{nameof(BugReportInfo)}_{timeStamp}.html";
+            //string jsonReportName = $"{nameof(BugReportInfo)}_{timeStamp}.json";
 
-            if (FileWrite(htmlReportName, CreateBugReportAsHtml()))
+            ReportFile = CreateBugReportAsHtml();
+
+            if (!string.IsNullOrEmpty(ReportFile))
             {
                 ShowHUDBigInfo(
-                   $"{htmlReportName} created",
+                   ReportCreatedMessage("html report in game logs folder"),
                    $"{ModName} Info",
                    HUDInfoLogTextureType.Count.ToString());
 
-               Application.OpenURL(ReportFile);
+                ReportFile = string.Empty;
             }
 
-            if (FileWrite(jsonReportName, GetBugReportAsJSON()))
+            ReportFile = GetBugReportAsJSON();
+
+            if (!string.IsNullOrEmpty(ReportFile))
             {
                 ShowHUDBigInfo(
-                   $"{jsonReportName} created",
+                   ReportCreatedMessage("json report in game logs folder"),
                    $"{ModName} Info",
                    HUDInfoLogTextureType.Count.ToString());
 
-               Application.OpenURL(ReportFile);
+                ReportFile = string.Empty;
             }
         }
+
+        private static string ReportCreatedMessage(string htmlReportName) => $"<color=#{ColorUtility.ToHtmlStringRGBA(Color.red)}>System</color>:\n{htmlReportName} created!";
 
         protected string CreateBugReportAsHtml()
         {
             StringBuilder bugReportBuilder = new StringBuilder("<!DOCTYPE html>");
+
             try
             {
                 bugReportBuilder.AppendLine($"<html class=\"client\">" +
@@ -517,6 +484,8 @@ namespace CommunityTools
                                                                         $"      </body>" +
                                                                         $"</html>");
 
+                ModAPI.Log.Write(bugReportBuilder.ToString());
+
                 return bugReportBuilder.ToString();
             }
             catch (Exception exc)
@@ -530,6 +499,7 @@ namespace CommunityTools
         {
             string steps = $"";
             string reportTemplate = $"";
+
             try
             {
                 foreach (var step in BugReportInfo.StepsToReproduce)
@@ -564,6 +534,8 @@ namespace CommunityTools
                     $"\"MapCoordinates\": \"{BugReportInfo.MapCoordinates?.ToString()}\"," +
                     $"\"Note\": \"{BugReportInfo.Note}\"" +
                     $"}}";
+
+                ModAPI.Log.Write(reportTemplate);
 
                 return reportTemplate;
             }
