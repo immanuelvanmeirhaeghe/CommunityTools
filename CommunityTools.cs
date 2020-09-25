@@ -12,7 +12,7 @@ namespace CommunityTools
 
         private static readonly string ModName = nameof(CommunityTools);
 
-        private static readonly string ReportPath = $"{Application.dataPath}/Mods/{ModName}/Logs/";
+        private static readonly string ReportPath = $"{Application.dataPath.Replace("GH_Data", "Logs")}";
         public static string ReportFile { get; set; }
 
         private bool ShowUI = false;
@@ -55,7 +55,6 @@ namespace CommunityTools
         private static string StepsToReproduce = $"Use a semi-colon to separate each step description like this.; Then this is step 2.; And this will become step 3.";
         private static string Note = $"You can add any additional info here, like links to screenshots.";
 
-        private static bool QuickReportsEnabled = false;
 
         public CommunityTools()
         {
@@ -126,12 +125,6 @@ namespace CommunityTools
                     EnableCursor(false);
                 }
             }
-
-            //if ((IsModActiveForSingleplayer || IsModActiveForMultiplayer) && QuickReportsEnabled && Input.GetKeyDown(KeyCode.Keypad5))
-            //{
-            //    InitData();
-            //    CreateBugReport();
-            //}
         }
 
         private void ToggleShowUI(int level = 0)
@@ -230,57 +223,49 @@ namespace CommunityTools
                     }
                 }
 
-                //using (var vertical2Scope = new GUILayout.VerticalScope(GUI.skin.box))
-                //{
-                //    GUILayout.Label(" When enabled, press numerical keypad 5 to make a bug report.", GUI.skin.label);
-                //    QuickReportsEnabled = GUILayout.Toggle(QuickReportsEnabled, $"Enable reports? ", GUI.skin.toggle);
-                //}
-                using (var vertical3Scope = new GUILayout.VerticalScope(GUI.skin.box))
+                using (var horizontalScope = new GUILayout.HorizontalScope(GUI.skin.box))
                 {
-                    using (var horizontalScope = new GUILayout.HorizontalScope(GUI.skin.box))
-                    {
-                        GUILayout.Label("Topic description: ", GUI.skin.label);
-                        TopicDescription = GUILayout.TextField(TopicDescription, GUI.skin.textField);
-                    }
-
-                    using (var horizontalScope = new GUILayout.HorizontalScope(GUI.skin.box))
-                    {
-                        GUILayout.Label("Bug report type: ", GUI.skin.label);
-                        BugReportType = GUILayout.TextField(BugReportType, GUI.skin.textField);
-                    }
-
-                    using (var horizontalScope = new GUILayout.HorizontalScope(GUI.skin.box))
-                    {
-                        GUILayout.Label("Description: ", GUI.skin.label);
-                        Description = GUILayout.TextArea(Description, GUI.skin.textArea);
-                    }
-
-                    using (var horizontalScope = new GUILayout.HorizontalScope(GUI.skin.box))
-                    {
-                        GUILayout.Label("Steps to reproduce: ", GUI.skin.label);
-                        StepsToReproduce = GUILayout.TextArea(StepsToReproduce, GUI.skin.textArea);
-                    }
-
-                    using (var horizontalScope = new GUILayout.HorizontalScope(GUI.skin.box))
-                    {
-                        GUILayout.Label("Reproduce rate: ", GUI.skin.label);
-                        ReproduceRate = GUILayout.TextField(ReproduceRate, GUI.skin.textField);
-                    }
-
-                    using (var horizontalScope = new GUILayout.HorizontalScope(GUI.skin.box))
-                    {
-                        GUILayout.Label("Expected behaviour: ", GUI.skin.label);
-                        ExpectedBehaviour = GUILayout.TextArea(ExpectedBehaviour, GUI.skin.textArea);
-                    }
-
-                    using (var horizontalScope = new GUILayout.HorizontalScope(GUI.skin.box))
-                    {
-                        GUILayout.Label("Notes: ", GUI.skin.label);
-                        Note = GUILayout.TextArea(Note, GUI.skin.textArea);
-                    }
-
-                    CreateBugReportButton();
+                    GUILayout.Label("Topic description: ", GUI.skin.label);
+                    TopicDescription = GUILayout.TextField(TopicDescription, GUI.skin.textField);
                 }
+
+                using (var horizontalScope = new GUILayout.HorizontalScope(GUI.skin.box))
+                {
+                    GUILayout.Label("Bug report type: ", GUI.skin.label);
+                    BugReportType = GUILayout.TextField(BugReportType, GUI.skin.textField);
+                }
+
+                using (var horizontalScope = new GUILayout.HorizontalScope(GUI.skin.box))
+                {
+                    GUILayout.Label("Description: ", GUI.skin.label);
+                    Description = GUILayout.TextArea(Description, GUI.skin.textArea);
+                }
+
+                using (var horizontalScope = new GUILayout.HorizontalScope(GUI.skin.box))
+                {
+                    GUILayout.Label("Steps to reproduce: ", GUI.skin.label);
+                    StepsToReproduce = GUILayout.TextArea(StepsToReproduce, GUI.skin.textArea);
+                }
+
+                using (var horizontalScope = new GUILayout.HorizontalScope(GUI.skin.box))
+                {
+                    GUILayout.Label("Reproduce rate: ", GUI.skin.label);
+                    ReproduceRate = GUILayout.TextField(ReproduceRate, GUI.skin.textField);
+                }
+
+                using (var horizontalScope = new GUILayout.HorizontalScope(GUI.skin.box))
+                {
+                    GUILayout.Label("Expected behaviour: ", GUI.skin.label);
+                    ExpectedBehaviour = GUILayout.TextArea(ExpectedBehaviour, GUI.skin.textArea);
+                }
+
+                using (var horizontalScope = new GUILayout.HorizontalScope(GUI.skin.box))
+                {
+                    GUILayout.Label("Notes: ", GUI.skin.label);
+                    Note = GUILayout.TextArea(Note, GUI.skin.textArea);
+                }
+
+                CreateBugReportButton();
 
             }
             GUI.DragWindow(new Rect(0f, 0f, 10000f, 10000f));
@@ -356,12 +341,15 @@ namespace CommunityTools
 
         private void CreateBugReportButton()
         {
-            using (var horizontalScope = new GUILayout.HorizontalScope(GUI.skin.box))
+            if (IsModActiveForMultiplayer || IsModActiveForSingleplayer)
             {
-                if (GUILayout.Button("Create bug report", GUI.skin.button))
+                using (var horizontalScope = new GUILayout.HorizontalScope(GUI.skin.box))
                 {
-                    OnClickCreateBugReportButton();
-                    CloseWindow();
+                    if (GUILayout.Button("Create bug report", GUI.skin.button))
+                    {
+                        OnClickCreateBugReportButton();
+                        CloseWindow();
+                    }
                 }
             }
         }
@@ -458,10 +446,6 @@ namespace CommunityTools
 
         private void CreateReports()
         {
-            //string timeStamp = DateTime.Now.ToString("yyyyMMddThhmmmsZ");
-            //string htmlReportName = $"{nameof(BugReportInfo)}_{timeStamp}.html";
-            //string jsonReportName = $"{nameof(BugReportInfo)}_{timeStamp}.json";
-
             ReportFile = CreateBugReportAsHtml();
 
             if (!string.IsNullOrEmpty(ReportFile))
@@ -491,42 +475,43 @@ namespace CommunityTools
 
         protected string CreateBugReportAsHtml()
         {
-            StringBuilder bugReportBuilder = new StringBuilder("<!DOCTYPE html>");
+            StringBuilder bugReportBuilder = new StringBuilder("");
 
             try
             {
-                bugReportBuilder.AppendLine($"<html class=\"client\">" +
-                                                                            $"  <head>" +
-                                                                            $"      <meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\">" +
-                                                                            $"      <title>" +
-                                                                            $"         {BugReportInfo.Topic?.GameVersion}] - {BugReportInfo.Topic?.Description} :: Green Hell Bug Reports" +
-                                                                            $"      </title>" +
-                                                                            $"  </head>" +
-                                                                            $"  <body>" +
-                                                                            $"      <div class=\"topic\">" +
-                                                                            $"          [{BugReportInfo.Topic?.GameVersion}] - {BugReportInfo.Topic?.Description}" +
-                                                                            $"      </div>" +
-                                                                            $"      <div class=\"content\">" +
-                                                                            $"          <br>Type: {BugReportInfo.BugReportType}" +
-                                                                            $"          <br>Description: {BugReportInfo.Description}" +
-                                                                            $"          <ul>Steps to Reproduce:");
+                bugReportBuilder.AppendLine($"<!DOCTYPE html>");
+                bugReportBuilder.AppendLine($"<html class=\"client\">");
+                bugReportBuilder.AppendLine($"  <head>");
+                bugReportBuilder.AppendLine($"      <meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\">");
+                bugReportBuilder.AppendLine($"      <title>");
+                bugReportBuilder.AppendLine($"         {BugReportInfo.Topic?.GameVersion}] - {BugReportInfo.Topic?.Description} :: Green Hell Bug Reports");
+                bugReportBuilder.AppendLine($"      </title>");
+                bugReportBuilder.AppendLine($"  </head>");
+                bugReportBuilder.AppendLine($"  <body>");
+                bugReportBuilder.AppendLine($"      <div class=\"topic\">");
+                bugReportBuilder.AppendLine($"          [{BugReportInfo.Topic?.GameVersion}] - {BugReportInfo.Topic?.Description}");
+                bugReportBuilder.AppendLine($"      </div>");
+                bugReportBuilder.AppendLine($"      <div class=\"content\">");
+                bugReportBuilder.AppendLine($"          <br>Type: {BugReportInfo.BugReportType}");
+                bugReportBuilder.AppendLine($"          <br>Description: {BugReportInfo.Description}");
+                bugReportBuilder.AppendLine($"          <ul>Steps to Reproduce:");
                 foreach (var step in BugReportInfo.StepsToReproduce)
                 {
                     bugReportBuilder.AppendLine($"          <li>Step {step.Rank}: {step.Description}</li>");
                 }
-                bugReportBuilder.AppendLine($"             </ul>" +
-                                                                        $"               <br>Reproduce rate: {BugReportInfo.ReproduceRate}" +
-                                                                        $"               <br>Expected behaviour: {BugReportInfo.ExpectedBehaviour}" +
-                                                                        $"              <ul>My PC spec:" +
-                                                                        $"                  <li>OS: {BugReportInfo.PcSpecs?.OS}</li>" +
-                                                                        $"                  <li>CPU: {BugReportInfo.PcSpecs?.CPU}</li>" +
-                                                                        $"                  <li>GPU: {BugReportInfo.PcSpecs?.GPU}</li>" +
-                                                                        $"                  <li>RAM: {BugReportInfo.PcSpecs?.RAM}</li>" +
-                                                                        $"              </ul>" +
-                                                                        $"              <br>Note:  {BugReportInfo.Note}" +
-                                                                        $"          </div>" +
-                                                                        $"      </body>" +
-                                                                        $"</html>");
+                bugReportBuilder.AppendLine($"             </ul>");
+                bugReportBuilder.AppendLine($"               <br>Reproduce rate: {BugReportInfo.ReproduceRate}");
+                bugReportBuilder.AppendLine($"               <br>Expected behaviour: {BugReportInfo.ExpectedBehaviour}");
+                bugReportBuilder.AppendLine($"              <ul>My PC spec:");
+                bugReportBuilder.AppendLine($"                  <li>OS: {BugReportInfo.PcSpecs?.OS}</li>");
+                bugReportBuilder.AppendLine($"                  <li>CPU: {BugReportInfo.PcSpecs?.CPU}</li>");
+                bugReportBuilder.AppendLine($"                  <li>GPU: {BugReportInfo.PcSpecs?.GPU}</li>");
+                bugReportBuilder.AppendLine($"                  <li>RAM: {BugReportInfo.PcSpecs?.RAM}</li>");
+                bugReportBuilder.AppendLine($"              </ul>");
+                bugReportBuilder.AppendLine($"              <br>Note:  {BugReportInfo.Note}");
+                bugReportBuilder.AppendLine($"          </div>");
+                bugReportBuilder.AppendLine($"      </body>");
+                bugReportBuilder.AppendLine($"</html>");
 
                 ModAPI.Log.Write(bugReportBuilder.ToString());
 
@@ -541,52 +526,48 @@ namespace CommunityTools
 
         protected string GetBugReportAsJSON()
         {
-            string steps = $"";
-            string reportTemplate = $"";
+            StringBuilder bugReportBuilder = new StringBuilder("");
 
             try
             {
+                bugReportBuilder.AppendLine($"{{");
+                bugReportBuilder.AppendLine($"\"Topic\":");
+                bugReportBuilder.AppendLine($"{{ ");
+                bugReportBuilder.AppendLine($"\"GameVersion\": \"{BugReportInfo.Topic?.GameVersion}\",");
+                bugReportBuilder.AppendLine($"\"Description\": \"{BugReportInfo.Topic?.Description}\"");
+                bugReportBuilder.AppendLine($"}},");
+                bugReportBuilder.AppendLine($"\"Type\": \"{BugReportInfo.BugReportType}\",");
+                bugReportBuilder.AppendLine($"\"Description\": \"{BugReportInfo.Description}\",");
+                bugReportBuilder.AppendLine($"\"StepsToReproduce\": [");
                 foreach (var step in BugReportInfo.StepsToReproduce)
                 {
-                    steps += $"" +
-                        $"{{" +
-                        $"\"Rank\": {step.Rank}," +
-                        $"\"Description\": \"{step.Description}\"" +
-                        $"}},";
+                    bugReportBuilder.AppendLine($"{{");
+                    bugReportBuilder.AppendLine($"\"Rank\": {step.Rank},");
+                    bugReportBuilder.AppendLine($"\"Description\": \"{step.Description}\", ");
+                    bugReportBuilder.AppendLine($"}},");
                 }
-                reportTemplate = $"" +
-                    $"{{" +
-                    $"\"Topic\":" +
-                    $"{{ " +
-                    $"\"GameVersion\": \"{BugReportInfo.Topic?.GameVersion}\"," +
-                    $"\"Description\": \"{BugReportInfo.Topic?.Description}\"" +
-                    $"}}," +
-                    $"\"Type\": \"{BugReportInfo.BugReportType}\"," +
-                    $"\"Description\": \"{BugReportInfo.Description}\"," +
-                    $"\"StepsToReproduce\": [" +
-                    $"{steps}" +
-                    $"]," +
-                    $"\"ReproduceRate\": \"{BugReportInfo.ReproduceRate}\"," +
-                    $"\"ExpectedBehaviour\": \"{BugReportInfo.ExpectedBehaviour}\"," +
-                    $"\"PcSpecs\":" +
-                    $"{{" +
-                    $"\"OS\": \"{BugReportInfo.PcSpecs?.OS}\"," +
-                    $"\"CPU\": \"{BugReportInfo.PcSpecs?.CPU}\"," +
-                    $"\"GPU\": \"{BugReportInfo.PcSpecs?.GPU}\"," +
-                    $"\"RAM\": \"{BugReportInfo.PcSpecs?.RAM}\"" +
-                    $"}}," +
-                    $"\"MapCoordinates\": \"{BugReportInfo.MapCoordinates?.ToString()}\"," +
-                    $"\"Note\": \"{BugReportInfo.Note}\"" +
-                    $"}}";
+                bugReportBuilder.AppendLine($"],");
+                bugReportBuilder.AppendLine($"\"ReproduceRate\": \"{BugReportInfo.ReproduceRate}\",");
+                bugReportBuilder.AppendLine($"\"ExpectedBehaviour\": \"{BugReportInfo.ExpectedBehaviour}\",");
+                bugReportBuilder.AppendLine($"\"PcSpecs\":");
+                bugReportBuilder.AppendLine($"{{");
+                bugReportBuilder.AppendLine($"\"OS\": \"{BugReportInfo.PcSpecs?.OS}\",");
+                bugReportBuilder.AppendLine($"\"CPU\": \"{BugReportInfo.PcSpecs?.CPU}\",");
+                bugReportBuilder.AppendLine($"\"GPU\": \"{BugReportInfo.PcSpecs?.GPU}\",");
+                bugReportBuilder.AppendLine($"\"RAM\": \"{BugReportInfo.PcSpecs?.RAM}\"");
+                bugReportBuilder.AppendLine($"}},");
+                bugReportBuilder.AppendLine($"\"MapCoordinates\": \"{BugReportInfo.MapCoordinates?.ToString()}\",");
+                bugReportBuilder.AppendLine($"\"Note\": \"{BugReportInfo.Note}\"");
+                bugReportBuilder.AppendLine($"}}");
 
-                ModAPI.Log.Write(reportTemplate);
+                ModAPI.Log.Write(bugReportBuilder.ToString());
 
-                return reportTemplate;
+                return bugReportBuilder.ToString();
             }
             catch (Exception exc)
             {
                 ModAPI.Log.Write($"[{(ModName)}.{nameof(CommunityToolsScreen)}:{nameof(GetBugReportAsJSON)}] throws exception: {exc.Message}");
-                return reportTemplate;
+                return bugReportBuilder.ToString();
             }
         }
     }

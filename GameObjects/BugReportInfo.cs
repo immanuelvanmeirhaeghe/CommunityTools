@@ -175,8 +175,8 @@ namespace CommunityTools.GameObjects
         public static string GetScreenshotInfo(string note = "")
         {
             string timeStamp = DateTime.Now.ToString("yyyyMMddThhmmmsZ");
-            string fileName = $"{nameof(BugReportInfo)}_{timeStamp}.jpg";
-            string fileDataPath = Application.dataPath + $"/Mods/{nameof(CommunityTools)}/Screenshots/";
+            string fileName = $"{nameof(BugReportInfo)}_{timeStamp}.png";
+            string fileDataPath = $"{Application.dataPath.Replace("GH_Data", "Logs")}/Screenshots/";
             string screenshotFile = $"{fileDataPath}{fileName}";
 
             if (!Directory.Exists(fileDataPath))
@@ -189,6 +189,5 @@ namespace CommunityTools.GameObjects
 
             return note;
         }
-
     }
 }
