@@ -127,11 +127,11 @@ namespace CommunityTools
                 }
             }
 
-            if ((IsModActiveForSingleplayer || IsModActiveForMultiplayer) && QuickReportsEnabled && Input.GetKeyDown(KeyCode.Keypad5))
-            {
-                InitData();
-                CreateBugReport();
-            }
+            //if ((IsModActiveForSingleplayer || IsModActiveForMultiplayer) && QuickReportsEnabled && Input.GetKeyDown(KeyCode.Keypad5))
+            //{
+            //    InitData();
+            //    CreateBugReport();
+            //}
         }
 
         private void ToggleShowUI(int level = 0)
@@ -230,11 +230,58 @@ namespace CommunityTools
                     }
                 }
 
-                using (var vertical2Scope = new GUILayout.VerticalScope(GUI.skin.box))
+                //using (var vertical2Scope = new GUILayout.VerticalScope(GUI.skin.box))
+                //{
+                //    GUILayout.Label(" When enabled, press numerical keypad 5 to make a bug report.", GUI.skin.label);
+                //    QuickReportsEnabled = GUILayout.Toggle(QuickReportsEnabled, $"Enable reports? ", GUI.skin.toggle);
+                //}
+                using (var vertical3Scope = new GUILayout.VerticalScope(GUI.skin.box))
                 {
-                    GUILayout.Label(" When enabled, press numerical keypad 5 to make a bug report.", GUI.skin.label);
-                    QuickReportsEnabled = GUILayout.Toggle(QuickReportsEnabled, $"Enable reports? ", GUI.skin.toggle);
+                    using (var horizontalScope = new GUILayout.HorizontalScope(GUI.skin.box))
+                    {
+                        GUILayout.Label("Topic description: ", GUI.skin.label);
+                        TopicDescription = GUILayout.TextField(TopicDescription, GUI.skin.textField);
+                    }
+
+                    using (var horizontalScope = new GUILayout.HorizontalScope(GUI.skin.box))
+                    {
+                        GUILayout.Label("Bug report type: ", GUI.skin.label);
+                        BugReportType = GUILayout.TextField(BugReportType, GUI.skin.textField);
+                    }
+
+                    using (var horizontalScope = new GUILayout.HorizontalScope(GUI.skin.box))
+                    {
+                        GUILayout.Label("Description: ", GUI.skin.label);
+                        Description = GUILayout.TextArea(Description, GUI.skin.textArea);
+                    }
+
+                    using (var horizontalScope = new GUILayout.HorizontalScope(GUI.skin.box))
+                    {
+                        GUILayout.Label("Steps to reproduce: ", GUI.skin.label);
+                        StepsToReproduce = GUILayout.TextArea(StepsToReproduce, GUI.skin.textArea);
+                    }
+
+                    using (var horizontalScope = new GUILayout.HorizontalScope(GUI.skin.box))
+                    {
+                        GUILayout.Label("Reproduce rate: ", GUI.skin.label);
+                        ReproduceRate = GUILayout.TextField(ReproduceRate, GUI.skin.textField);
+                    }
+
+                    using (var horizontalScope = new GUILayout.HorizontalScope(GUI.skin.box))
+                    {
+                        GUILayout.Label("Expected behaviour: ", GUI.skin.label);
+                        ExpectedBehaviour = GUILayout.TextArea(ExpectedBehaviour, GUI.skin.textArea);
+                    }
+
+                    using (var horizontalScope = new GUILayout.HorizontalScope(GUI.skin.box))
+                    {
+                        GUILayout.Label("Notes: ", GUI.skin.label);
+                        Note = GUILayout.TextArea(Note, GUI.skin.textArea);
+                    }
+
+                    CreateBugReportButton();
                 }
+
             }
             GUI.DragWindow(new Rect(0f, 0f, 10000f, 10000f));
         }
@@ -333,19 +380,16 @@ namespace CommunityTools
 
         public void OnClickOpenSteamGuideButton()
         {
-            MainLevel.Instance.Pause(true);
             Application.OpenURL(SteamForumGuideUrl);
         }
 
         public void OnClickOpenSteamForumButton()
         {
-            MainLevel.Instance.Pause(true);
             Application.OpenURL(SteamForumBugReportUrl);
         }
 
         public void OnClickSendMailButton()
         {
-            MainLevel.Instance.Pause(true);
             Application.OpenURL(CreepyJarContactEmail);
         }
 
