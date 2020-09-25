@@ -451,7 +451,7 @@ namespace CommunityTools
             if (!string.IsNullOrEmpty(ReportFile))
             {
                 ShowHUDBigInfo(
-                   ReportCreatedMessage("html report in game logs folder"),
+                   ReportCreatedMessage($"html report in {ReportPath}"),
                    $"{ModName} Info",
                    HUDInfoLogTextureType.Count.ToString());
 
@@ -463,7 +463,7 @@ namespace CommunityTools
             if (!string.IsNullOrEmpty(ReportFile))
             {
                 ShowHUDBigInfo(
-                   ReportCreatedMessage("json report in game logs folder"),
+                   ReportCreatedMessage($"json report in {ReportPath}"),
                    $"{ModName} Info",
                    HUDInfoLogTextureType.Count.ToString());
 
