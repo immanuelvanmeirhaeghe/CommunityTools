@@ -341,15 +341,12 @@ namespace CommunityTools
 
         private void CreateBugReportButton()
         {
-            if (IsModActiveForMultiplayer || IsModActiveForSingleplayer)
+            using (var horizontalScope = new GUILayout.HorizontalScope(GUI.skin.box))
             {
-                using (var horizontalScope = new GUILayout.HorizontalScope(GUI.skin.box))
+                if (GUILayout.Button("Create bug report", GUI.skin.button))
                 {
-                    if (GUILayout.Button("Create bug report", GUI.skin.button))
-                    {
-                        OnClickCreateBugReportButton();
-                        CloseWindow();
-                    }
+                    OnClickCreateBugReportButton();
+                    CloseWindow();
                 }
             }
         }
