@@ -12,7 +12,7 @@ namespace CommunityTools
 
         private static readonly string ModName = nameof(CommunityTools);
 
-        private static readonly string ReportPath = $"{Application.dataPath.Replace("GH_Data", "Logs")}";
+        private static readonly string ReportPath = $"{Application.dataPath.Replace("GH_Data", "Logs")}/{nameof(CommunityTools)}.log";
         public static string ReportFile { get; set; }
 
         private bool ShowUI = false;
@@ -52,7 +52,9 @@ namespace CommunityTools
         private static string TopicDescription = $"Short topic describing the bug.";
         private static string Description = $"The description of the bug.";
         private static string ExpectedBehaviour = $"Describe what you would have expected to happen in stead.";
-        private static string StepsToReproduce = $"Use a semi-colon to separate each step description like this.; Then this is step 2.; And this will become step 3.";
+        private static string StepsToReproduce = $"Use a semi-colon to separate each step description like this.;" +
+            $" Then this is step 2.; " +
+            $"And this will become step 3.;";
         private static string Note = $"You can add any additional info here, like links to screenshots.";
 
 
@@ -231,37 +233,37 @@ namespace CommunityTools
 
                 using (var horizontalScope = new GUILayout.HorizontalScope(GUI.skin.box))
                 {
-                    GUILayout.Label("Bug report type: ", GUI.skin.label);
+                    GUILayout.Label("Bug report type: ", GUI.skin.label, GUILayout.MinWidth(150f));
                     BugReportType = GUILayout.TextField(BugReportType, GUI.skin.textField);
                 }
 
                 using (var horizontalScope = new GUILayout.HorizontalScope(GUI.skin.box))
                 {
-                    GUILayout.Label("Description: ", GUI.skin.label);
+                    GUILayout.Label("Description: ", GUI.skin.label, GUILayout.MinWidth(150f));
                     Description = GUILayout.TextArea(Description, GUI.skin.textArea);
                 }
 
                 using (var horizontalScope = new GUILayout.HorizontalScope(GUI.skin.box))
                 {
-                    GUILayout.Label("Steps to reproduce: ", GUI.skin.label);
+                    GUILayout.Label("Steps to reproduce: ", GUI.skin.label, GUILayout.MinWidth(150f));
                     StepsToReproduce = GUILayout.TextArea(StepsToReproduce, GUI.skin.textArea);
                 }
 
                 using (var horizontalScope = new GUILayout.HorizontalScope(GUI.skin.box))
                 {
-                    GUILayout.Label("Reproduce rate: ", GUI.skin.label);
+                    GUILayout.Label("Reproduce rate: ", GUI.skin.label, GUILayout.MinWidth(150f));
                     ReproduceRate = GUILayout.TextField(ReproduceRate, GUI.skin.textField);
                 }
 
                 using (var horizontalScope = new GUILayout.HorizontalScope(GUI.skin.box))
                 {
-                    GUILayout.Label("Expected behaviour: ", GUI.skin.label);
+                    GUILayout.Label("Expected behaviour: ", GUI.skin.label, GUILayout.MinWidth(150f));
                     ExpectedBehaviour = GUILayout.TextArea(ExpectedBehaviour, GUI.skin.textArea);
                 }
 
                 using (var horizontalScope = new GUILayout.HorizontalScope(GUI.skin.box))
                 {
-                    GUILayout.Label("Notes: ", GUI.skin.label);
+                    GUILayout.Label("Notes: ", GUI.skin.label, GUILayout.MinWidth(150f));
                     Note = GUILayout.TextArea(Note, GUI.skin.textArea);
                 }
 
@@ -382,7 +384,18 @@ namespace CommunityTools
         {
             try
             {
-                BugReportInfo = new BugReportInfo();
+                BugReportInfo = new BugReportInfo
+                {
+                    BugReportType = BugReportType,
+                    Topic = BugReportInfo.GetTopic(TopicDescription),
+                    Description = Description,
+                    ExpectedBehaviour = ExpectedBehaviour,
+                    ReproduceRate = ReproduceRate,
+                    StepsToReproduce = BugReportInfo.GetStepsToReproduce(StepsToReproduce),
+                    MapCoordinates = BugReportInfo.GetMapCoordinates(player),
+                    PcSpecs = BugReportInfo.GetPcSpecs(),
+                    Note = BugReportInfo.GetScreenshotInfo(Note)
+                };
 
                 CreateReports();
 
