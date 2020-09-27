@@ -485,7 +485,7 @@ namespace CommunityTools
 
         protected string CreateBugReportAsHtml()
         {
-            StringBuilder bugReportBuilder = new StringBuilder("");
+            StringBuilder bugReportBuilder = new StringBuilder($"\n");
 
             try
             {
