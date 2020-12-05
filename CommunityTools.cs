@@ -6,83 +6,80 @@ using UnityEngine;
 
 namespace CommunityTools
 {
-    class CommunityTools : MonoBehaviour
+    public enum MessageType
     {
-        private static CommunityTools s_Instance;
+        Info,
+        Warning,
+        Error
+    }
+
+    /// <summary>
+    /// CommunityTools is a mod for Green Hell that aims to be a tool for the gamer community and modders.
+    /// For now, it helps in getting game metadata and creating a bug report.
+    /// Output can be found in the game installation data folder in subfolder Logs.
+    /// Enable the mod UI by pressing Home.
+    /// </summary>
+    public class CommunityTools : MonoBehaviour
+    {
+        private static CommunityTools Instance;
 
         private static readonly string ModName = nameof(CommunityTools);
-
         private static readonly string ReportPath = $"{Application.dataPath.Replace("GH_Data", "Logs")}/{nameof(CommunityTools)}.log";
-        public static string ReportFile { get; set; }
+        private static readonly float ModScreenTotalWidth = 500f;
+        private static readonly float ModScreenTotalHeight = 150f;
+        private static readonly float ModScreenMinWidth = 450f;
+        private static readonly float ModScreenMaxWidth = 550f;
+        private static readonly float ModScreenMinHeight = 50f;
+        private static readonly float ModScreenMaxHeight = 200f;
+        private static float ModScreenStartPositionX { get; set; } = (Screen.width - ModScreenMaxWidth) % ModScreenTotalWidth;
+        private static float ModScreenStartPositionY { get; set; } = (Screen.height - ModScreenMaxHeight) % ModScreenTotalHeight;
+        private static bool IsMinimized { get; set; } = false;
 
         private bool ShowUI = false;
-
         private bool ShowBugUI = false;
 
-        public static Rect CommunityToolsScreen = new Rect(1000f, 500f, 450f, 150f);
+        public static Rect CommunityToolsScreen = new Rect(ModScreenStartPositionX, ModScreenStartPositionY, ModScreenTotalWidth, ModScreenTotalHeight);
+        public static Rect CommunityToolsBugReportScreen = new Rect(ModScreenStartPositionX / 2f, ModScreenStartPositionY / 2f, ModScreenTotalWidth, ModScreenTotalHeight);
 
-        public static Rect CommunityToolsBugReportScreen = new Rect(1000f, 500f, 450f, 150f);
+        public bool IsModActiveForMultiplayer { get; private set; } = false;
+        public bool IsModActiveForSingleplayer => ReplTools.AmIMaster();
 
-        private static ItemsManager itemsManager;
+        private static Player LocalPlayer;
+        private static HUDManager LocalHUDManager;
+        private static BugReportInfo LocalBugReportInfo;
 
-        private static Player player;
+        public static string SteamForumBugReportUrl { get; private set; }
+        public static string SteamForumGuideUrl { get; private set; }
+        public static string CreepyJarContactEmail { get; private set; }
+        public static string ReportFile { get; set; }
 
-        private static HUDManager hUDManager;
-
-        private static BugReportInfo BugReportInfo;
-
-        private bool _isActiveForMultiplayer;
-        public bool IsModActiveForMultiplayer {
-            get => _isActiveForMultiplayer;
-            set => _isActiveForMultiplayer = FindObjectOfType(typeof(ModManager.ModManager)) != null && ModManager.ModManager.AllowModsForMultiplayer;
-        }
-
-        private bool _isActiveForSingleplayer;
-        public bool IsModActiveForSingleplayer {
-            get => _isActiveForSingleplayer;
-            set => _isActiveForSingleplayer = ReplTools.AmIMaster();
-        }
-
-        public string SteamForumBugReportUrl { get; private set; }
-        public string SteamForumGuideUrl { get; private set; }
-        public string CreepyJarContactEmail { get; private set; }
-
-        private static string BugReportType = $"| UI | Crafting | Building | Multiplayer | Save Game | Items | Inventory | Other |";
-        private static string ReproduceRate = $"At least once";
-        private static string TopicDescription = $"Short topic describing the bug.";
-        private static string Description = $"The description of the bug.";
-        private static string ExpectedBehaviour = $"Describe what you would have expected to happen in stead.";
-        private static string StepsToReproduce = $"Use a semi-colon to separate each step description like this.;" +
+        public static string BugReportType = $"| UI | Crafting | Building | Multiplayer | Save Game | Items | Inventory | Other |";
+        public static string ReproduceRate = $"At least once";
+        public static string TopicDescription = $"Short topic describing the bug.";
+        public static string Description = $"The description of the bug.";
+        public static string ExpectedBehaviour = $"Describe what you would have expected to happen in stead.";
+        public static string StepsToReproduce = $"Use a semi-colon to separate each step description like this.;" +
             $" Then this is step 2.; " +
-            $"And this will become step 3.;";
-        private static string Note = $"You can add any additional info here, like links to screenshots.";
+            $"And this will become step 3.";
+        public static string Note = $"You can add any additional info here, like links to screenshots.";
 
+        public static string PermissionChangedMessage(string permission) => $"Permission to use mods and cheats in multiplayer was {permission}";
+        public static string HUDBigInfoMessage(string message, MessageType messageType, Color? headcolor = null)
+            => $"<color=#{ (headcolor != null ? ColorUtility.ToHtmlStringRGBA(headcolor.Value) : ColorUtility.ToHtmlStringRGBA(Color.red))  }>{messageType}</color>\n{message}";
 
-        public CommunityTools()
+        private void HandleException(Exception exc, string methodName)
         {
-            SteamForumBugReportUrl = "https://steamcommunity.com/app/815370/discussions/1/";
-            SteamForumGuideUrl = "https://steamcommunity.com/sharedfiles/filedetails/?id=2160052009";
-            CreepyJarContactEmail = "mailto:support@creepyjar.com";
-            useGUILayout = true;
-            s_Instance = this;
+            string info = $"[{ModName}:{methodName}] throws exception:\n{exc.Message}";
+            ModAPI.Log.Write(info);
+            ShowHUDBigInfo(HUDBigInfoMessage(info, MessageType.Error, Color.red));
         }
 
-        public static CommunityTools Get()
+        public void ShowHUDBigInfo(string text)
         {
-            return s_Instance;
-        }
-
-        public void ShowHUDInfoLog(string itemID, string localizedTextKey)
-        {
-            Localization localization = GreenHellGame.Instance.GetLocalization();
-            ((HUDMessages)hUDManager.GetHUD(typeof(HUDMessages))).AddMessage(localization.Get(localizedTextKey) + "  " + localization.Get(itemID));
-        }
-
-        public void ShowHUDBigInfo(string text, string header, string textureName)
-        {
-            HUDManager hUDManager = HUDManager.Get();
-
-            HUDBigInfo hudBigInfo = (HUDBigInfo)hUDManager.GetHUD(typeof(HUDBigInfo));
+            string header = $"{ModName} Info";
+            string textureName = HUDInfoLogTextureType.Count.ToString();
+            HUDBigInfo hudBigInfo = (HUDBigInfo)LocalHUDManager.GetHUD(typeof(HUDBigInfo));
+            HUDBigInfoData.s_Duration = 2f;
             HUDBigInfoData hudBigInfoData = new HUDBigInfoData
             {
                 m_Header = header,
@@ -94,21 +91,56 @@ namespace CommunityTools
             hudBigInfo.Show(true);
         }
 
+        public void ShowHUDInfoLog(string itemID, string localizedTextKey)
+        {
+            Localization localization = GreenHellGame.Instance.GetLocalization();
+            ((HUDMessages)LocalHUDManager.GetHUD(typeof(HUDMessages))).AddMessage(localization.Get(localizedTextKey) + "  " + localization.Get(itemID));
+        }
+
+        public void Start()
+        {
+            ModManager.ModManager.onPermissionValueChanged += ModManager_onPermissionValueChanged;
+        }
+
+        private void ModManager_onPermissionValueChanged(bool optionValue)
+        {
+            IsModActiveForMultiplayer = optionValue;
+            ShowHUDBigInfo(
+                          (optionValue ?
+                            HUDBigInfoMessage(PermissionChangedMessage($"granted"), MessageType.Info, Color.green)
+                            : HUDBigInfoMessage(PermissionChangedMessage($"revoked"), MessageType.Info, Color.yellow))
+                            );
+        }
+
+        public CommunityTools()
+        {
+            SteamForumBugReportUrl = "https://steamcommunity.com/app/815370/discussions/1/";
+            SteamForumGuideUrl = "https://steamcommunity.com/sharedfiles/filedetails/?id=2160052009";
+            CreepyJarContactEmail = "mailto:support@creepyjar.com";
+            useGUILayout = true;
+            Instance = this;
+        }
+
+        public static CommunityTools Get()
+        {
+            return Instance;
+        }
+
         private void EnableCursor(bool blockPlayer = false)
         {
             CursorManager.Get().ShowCursor(blockPlayer, false);
 
             if (blockPlayer)
             {
-                player.BlockMoves();
-                player.BlockRotation();
-                player.BlockInspection();
+                LocalPlayer.BlockMoves();
+                LocalPlayer.BlockRotation();
+                LocalPlayer.BlockInspection();
             }
             else
             {
-                player.UnblockMoves();
-                player.UnblockRotation();
-                player.UnblockInspection();
+                LocalPlayer.UnblockMoves();
+                LocalPlayer.UnblockRotation();
+                LocalPlayer.UnblockInspection();
             }
         }
 
@@ -158,9 +190,8 @@ namespace CommunityTools
 
         private void InitData()
         {
-            hUDManager = HUDManager.Get();
-            itemsManager = ItemsManager.Get();
-            player = Player.Get();
+            LocalHUDManager = HUDManager.Get();
+            LocalPlayer = Player.Get();
         }
 
         private void InitSkinUI()
@@ -181,155 +212,182 @@ namespace CommunityTools
             }
         }
 
+        private void ScreenMenuBox(Rect screen)
+        {
+            if (GUI.Button(new Rect(screen.width - 40f, 0f, 20f, 20f), "-", GUI.skin.button))
+            {
+                CollapseWindow(screen);
+            }
+
+            if (GUI.Button(new Rect(screen.width - 20f, 0f, 20f, 20f), "X", GUI.skin.button))
+            {
+                CloseWindow();
+            }
+        }
+
+        private void CollapseWindow(Rect screen)
+        {
+            if (!IsMinimized)
+            {
+                screen = new Rect(ModScreenStartPositionX, ModScreenStartPositionY, ModScreenTotalWidth, ModScreenMinHeight);
+                IsMinimized = true;
+            }
+            else
+            {
+                screen = new Rect(ModScreenStartPositionX, ModScreenStartPositionY, ModScreenTotalWidth, ModScreenTotalHeight);
+                IsMinimized = false;
+            }
+            InitWindow();
+        }
+
         private void ShowCommunityToolsScreen()
         {
-            CommunityToolsScreen = GUILayout.Window(GetHashCode(), CommunityToolsScreen, InitCommunityToolsScreen, $"{ModName}", GUI.skin.window);
+            CommunityToolsScreen = GUILayout.Window(GetHashCode(), CommunityToolsScreen, InitCommunityToolsScreen, ModName,
+                                                                                                          GUI.skin.window,
+                                                                                                          GUILayout.ExpandWidth(true),
+                                                                                                          GUILayout.MinWidth(ModScreenMinWidth),
+                                                                                                          GUILayout.MaxWidth(ModScreenMaxWidth),
+                                                                                                          GUILayout.ExpandHeight(true),
+                                                                                                          GUILayout.MinHeight(ModScreenMinHeight),
+                                                                                                          GUILayout.MaxHeight(ModScreenMaxHeight));
         }
 
         private void InitCommunityToolsScreen(int windowID)
         {
-            using (var verticalScope = new GUILayout.VerticalScope(GUI.skin.box))
+            ModScreenStartPositionX = CommunityToolsScreen.x;
+            ModScreenStartPositionY = CommunityToolsScreen.y;
+
+            using (var modContentScope = new GUILayout.VerticalScope(GUI.skin.box))
             {
-                if (GUI.Button(new Rect(430f, 0f, 20f, 20f), "X", GUI.skin.button))
+                ScreenMenuBox(CommunityToolsScreen);
+                if (!IsMinimized)
                 {
-                    CloseWindow();
+                    SupportOnlineBox();
+                    BugReportBox();
                 }
-
-                using (var horizontalScope = new GUILayout.HorizontalScope(GUI.skin.box))
-                {
-                    GUILayout.Label("Click to send your question by mail to Creepy Jar Help", GUI.skin.label);
-                    if (GUILayout.Button("Send mail", GUI.skin.button))
-                    {
-                        OnClickSendMailButton();
-                        CloseWindow();
-                    }
-                }
-
-                using (var horizontalScope = new GUILayout.HorizontalScope(GUI.skin.box))
-                {
-                    GUILayout.Label("Try to find help online on Steam ", GUI.skin.label);
-                    if (GUILayout.Button("Open guide", GUI.skin.button))
-                    {
-                        OnClickOpenSteamGuideButton();
-                        CloseWindow();
-                    }
-                }
-
-                using (var horizontalScope = new GUILayout.HorizontalScope(GUI.skin.box))
-                {
-                    GUILayout.Label("Look at the reported bugs on Steam ", GUI.skin.label);
-                    if (GUILayout.Button("Open forum", GUI.skin.button))
-                    {
-                        OnClickOpenSteamGuideButton();
-                        CloseWindow();
-                    }
-                }
-
-                using (var horizontalScope = new GUILayout.HorizontalScope(GUI.skin.box))
-                {
-                    GUILayout.Label("Topic description: ", GUI.skin.label);
-                    TopicDescription = GUILayout.TextField(TopicDescription, GUI.skin.textField);
-                }
-
-                using (var horizontalScope = new GUILayout.HorizontalScope(GUI.skin.box))
-                {
-                    GUILayout.Label("Bug report type: ", GUI.skin.label, GUILayout.MinWidth(150f));
-                    BugReportType = GUILayout.TextField(BugReportType, GUI.skin.textField);
-                }
-
-                using (var horizontalScope = new GUILayout.HorizontalScope(GUI.skin.box))
-                {
-                    GUILayout.Label("Description: ", GUI.skin.label, GUILayout.MinWidth(150f));
-                    Description = GUILayout.TextArea(Description, GUI.skin.textArea);
-                }
-
-                using (var horizontalScope = new GUILayout.HorizontalScope(GUI.skin.box))
-                {
-                    GUILayout.Label("Steps to reproduce: ", GUI.skin.label, GUILayout.MinWidth(150f));
-                    StepsToReproduce = GUILayout.TextArea(StepsToReproduce, GUI.skin.textArea);
-                }
-
-                using (var horizontalScope = new GUILayout.HorizontalScope(GUI.skin.box))
-                {
-                    GUILayout.Label("Reproduce rate: ", GUI.skin.label, GUILayout.MinWidth(150f));
-                    ReproduceRate = GUILayout.TextField(ReproduceRate, GUI.skin.textField);
-                }
-
-                using (var horizontalScope = new GUILayout.HorizontalScope(GUI.skin.box))
-                {
-                    GUILayout.Label("Expected behaviour: ", GUI.skin.label, GUILayout.MinWidth(150f));
-                    ExpectedBehaviour = GUILayout.TextArea(ExpectedBehaviour, GUI.skin.textArea);
-                }
-
-                using (var horizontalScope = new GUILayout.HorizontalScope(GUI.skin.box))
-                {
-                    GUILayout.Label("Notes: ", GUI.skin.label, GUILayout.MinWidth(150f));
-                    Note = GUILayout.TextArea(Note, GUI.skin.textArea);
-                }
-
-                CreateBugReportButton();
-
             }
             GUI.DragWindow(new Rect(0f, 0f, 10000f, 10000f));
         }
 
+        private void BugReportBox()
+        {
+            using (var bugReportScope = new GUILayout.VerticalScope(GUI.skin.box))
+            {
+                BugReportFormBox();
+                if (GUILayout.Button("Create report", GUI.skin.button))
+                {
+                    OnClickCreateBugReportButton();
+                }
+                if (GUILayout.Button("Open report screen", GUI.skin.button))
+                {
+                    ShowBugUI = true;
+                    InitWindow();
+                }
+            }
+        }
+
+        private void BugReportFormBox()
+        {
+            using (var horizontalScope = new GUILayout.HorizontalScope(GUI.skin.box))
+            {
+                GUILayout.Label("Topic description: ", GUI.skin.label);
+                TopicDescription = GUILayout.TextField(TopicDescription, GUI.skin.textField);
+            }
+
+            using (var horizontalScope = new GUILayout.HorizontalScope(GUI.skin.box))
+            {
+                GUILayout.Label("Bug report type: ", GUI.skin.label);
+                BugReportType = GUILayout.TextField(BugReportType, GUI.skin.textField);
+            }
+
+            using (var horizontalScope = new GUILayout.HorizontalScope(GUI.skin.box))
+            {
+                GUILayout.Label("Description: ", GUI.skin.label);
+                Description = GUILayout.TextArea(Description, GUI.skin.textArea);
+            }
+
+            using (var horizontalScope = new GUILayout.HorizontalScope(GUI.skin.box))
+            {
+                GUILayout.Label("Steps to reproduce: ", GUI.skin.label);
+                StepsToReproduce = GUILayout.TextArea(StepsToReproduce, GUI.skin.textArea);
+            }
+
+            using (var horizontalScope = new GUILayout.HorizontalScope(GUI.skin.box))
+            {
+                GUILayout.Label("Reproduce rate: ", GUI.skin.label);
+                ReproduceRate = GUILayout.TextField(ReproduceRate, GUI.skin.textField);
+            }
+
+            using (var horizontalScope = new GUILayout.HorizontalScope(GUI.skin.box))
+            {
+                GUILayout.Label("Expected behaviour: ", GUI.skin.label);
+                ExpectedBehaviour = GUILayout.TextArea(ExpectedBehaviour, GUI.skin.textArea);
+            }
+
+            using (var horizontalScope = new GUILayout.HorizontalScope(GUI.skin.box))
+            {
+                GUILayout.Label("Notes: ", GUI.skin.label);
+                Note = GUILayout.TextArea(Note, GUI.skin.textArea);
+            }
+        }
+
+        private void SupportOnlineBox()
+        {
+            using (var horizontalScope = new GUILayout.HorizontalScope(GUI.skin.box))
+            {
+                GUILayout.Label("Click to send your question by mail to Creepy Jar Help", GUI.skin.label);
+                if (GUILayout.Button("Send mail", GUI.skin.button))
+                {
+                    OnClickSendMailButton();
+                    CloseWindow();
+                }
+            }
+
+            using (var horizontalScope = new GUILayout.HorizontalScope(GUI.skin.box))
+            {
+                GUILayout.Label("Try to find help online on Steam ", GUI.skin.label);
+                if (GUILayout.Button("Open guide", GUI.skin.button))
+                {
+                    OnClickOpenSteamGuideButton();
+                    CloseWindow();
+                }
+            }
+
+            using (var horizontalScope = new GUILayout.HorizontalScope(GUI.skin.box))
+            {
+                GUILayout.Label("Look at the reported bugs on Steam ", GUI.skin.label);
+                if (GUILayout.Button("Open forum", GUI.skin.button))
+                {
+                    OnClickOpenSteamGuideButton();
+                    CloseWindow();
+                }
+            }
+        }
+
         private void ShowBugReportScreen()
         {
-            CommunityToolsBugReportScreen = GUILayout.Window(GetHashCode(), CommunityToolsBugReportScreen, InitCommunityToolsBugReportScreen, $"{ModName} - {nameof(CommunityToolsBugReportScreen)}", GUI.skin.window);
+            CommunityToolsBugReportScreen = GUILayout.Window(GetHashCode(), CommunityToolsBugReportScreen, InitCommunityToolsBugReportScreen, $"{ModName} - {nameof(CommunityToolsBugReportScreen)}", GUI.skin.window,
+                                                                                                          GUILayout.ExpandWidth(true),
+                                                                                                          GUILayout.MinWidth(ModScreenMinWidth),
+                                                                                                          GUILayout.MaxWidth(ModScreenMaxWidth),
+                                                                                                          GUILayout.ExpandHeight(true),
+                                                                                                          GUILayout.MinHeight(ModScreenMinHeight),
+                                                                                                          GUILayout.MaxHeight(ModScreenMaxHeight));
         }
 
         private void InitCommunityToolsBugReportScreen(int windowID)
         {
-            using (var verticalScope = new GUILayout.VerticalScope(GUI.skin.box))
+            ModScreenStartPositionX = CommunityToolsBugReportScreen.x;
+            ModScreenStartPositionY = CommunityToolsBugReportScreen.y;
+
+            using (var modContentScope = new GUILayout.VerticalScope(GUI.skin.box))
             {
-                if (GUI.Button(new Rect(430f, 0f, 20f, 20f), "X", GUI.skin.button))
+                ScreenMenuBox(CommunityToolsBugReportScreen);
+                if (!IsMinimized)
                 {
-                    CloseWindow();
+                    BugReportBox();
                 }
 
-                using (var horizontalScope = new GUILayout.HorizontalScope(GUI.skin.box))
-                {
-                    GUILayout.Label("Topic description: ", GUI.skin.label);
-                    TopicDescription = GUILayout.TextField(TopicDescription, GUI.skin.textField);
-                }
-
-                using (var horizontalScope = new GUILayout.HorizontalScope(GUI.skin.box))
-                {
-                    GUILayout.Label("Bug report type: ", GUI.skin.label);
-                    BugReportType = GUILayout.TextField(BugReportType, GUI.skin.textField);
-                }
-
-                using (var horizontalScope = new GUILayout.HorizontalScope(GUI.skin.box))
-                {
-                    GUILayout.Label("Description: ", GUI.skin.label);
-                    Description = GUILayout.TextArea(Description, GUI.skin.textArea);
-                }
-
-                using (var horizontalScope = new GUILayout.HorizontalScope(GUI.skin.box))
-                {
-                    GUILayout.Label("Steps to reproduce: ", GUI.skin.label);
-                    StepsToReproduce = GUILayout.TextArea(StepsToReproduce, GUI.skin.textArea);
-                }
-
-                using (var horizontalScope = new GUILayout.HorizontalScope(GUI.skin.box))
-                {
-                    GUILayout.Label("Reproduce rate: ", GUI.skin.label);
-                    ReproduceRate = GUILayout.TextField(ReproduceRate, GUI.skin.textField);
-                }
-
-                using (var horizontalScope = new GUILayout.HorizontalScope(GUI.skin.box))
-                {
-                    GUILayout.Label("Expected behaviour: ", GUI.skin.label);
-                    ExpectedBehaviour = GUILayout.TextArea(ExpectedBehaviour, GUI.skin.textArea);
-                }
-
-                using (var horizontalScope = new GUILayout.HorizontalScope(GUI.skin.box))
-                {
-                    GUILayout.Label("Notes: ", GUI.skin.label);
-                    Note = GUILayout.TextArea(Note, GUI.skin.textArea);
-                }
-
-                CreateBugReportButton();
             }
             GUI.DragWindow(new Rect(0f, 0f, 10000f, 10000f));
         }
@@ -341,18 +399,6 @@ namespace CommunityTools
             EnableCursor(false);
         }
 
-        private void CreateBugReportButton()
-        {
-            using (var horizontalScope = new GUILayout.HorizontalScope(GUI.skin.box))
-            {
-                if (GUILayout.Button("Create bug report", GUI.skin.button))
-                {
-                    OnClickCreateBugReportButton();
-                    CloseWindow();
-                }
-            }
-        }
-
         private void OnClickCreateBugReportButton()
         {
             try
@@ -361,7 +407,7 @@ namespace CommunityTools
             }
             catch (Exception exc)
             {
-                ModAPI.Log.Write($"[{ModName}.{ModName}:{nameof(OnClickCreateBugReportButton)}] throws exception: {exc.Message}");
+                HandleException(exc, nameof(OnClickCreateBugReportButton));
             }
         }
 
@@ -384,7 +430,7 @@ namespace CommunityTools
         {
             try
             {
-                BugReportInfo = new BugReportInfo
+                LocalBugReportInfo = new BugReportInfo
                 {
                     BugReportType = BugReportType,
                     Topic = BugReportInfo.GetTopic(TopicDescription),
@@ -392,7 +438,7 @@ namespace CommunityTools
                     ExpectedBehaviour = ExpectedBehaviour,
                     ReproduceRate = ReproduceRate,
                     StepsToReproduce = BugReportInfo.GetStepsToReproduce(StepsToReproduce),
-                    MapCoordinates = BugReportInfo.GetMapCoordinates(player),
+                    MapCoordinates = BugReportInfo.GetMapCoordinates(LocalPlayer),
                     PcSpecs = BugReportInfo.GetPcSpecs(),
                     Note = BugReportInfo.GetScreenshotInfo(Note)
                 };
@@ -403,7 +449,7 @@ namespace CommunityTools
             }
             catch (Exception exc)
             {
-                ModAPI.Log.Write($"[{ModName}.{ModName}:{nameof(CreateBugReport)}] throws exception: {exc.Message}");
+                HandleException(exc, nameof(CreateBugReport));
             }
         }
 
@@ -457,26 +503,16 @@ namespace CommunityTools
         private void CreateReports()
         {
             ReportFile = CreateBugReportAsHtml();
-
             if (!string.IsNullOrEmpty(ReportFile))
             {
-                ShowHUDBigInfo(
-                   ReportCreatedMessage($"html report in {ReportPath}"),
-                   $"{ModName} Info",
-                   HUDInfoLogTextureType.Count.ToString());
-
+                ShowHUDBigInfo(HUDBigInfoMessage(ReportCreatedMessage($"html report in {ReportPath}"), MessageType.Info, Color.green));
                 ReportFile = string.Empty;
             }
 
             ReportFile = GetBugReportAsJSON();
-
             if (!string.IsNullOrEmpty(ReportFile))
             {
-                ShowHUDBigInfo(
-                   ReportCreatedMessage($"json report in {ReportPath}"),
-                   $"{ModName} Info",
-                   HUDInfoLogTextureType.Count.ToString());
-
+                ShowHUDBigInfo(HUDBigInfoMessage(ReportCreatedMessage($"json report in {ReportPath}"), MessageType.Info, Color.green));
                 ReportFile = string.Empty;
             }
         }
@@ -494,31 +530,31 @@ namespace CommunityTools
                 bugReportBuilder.AppendLine($"  <head>");
                 bugReportBuilder.AppendLine($"      <meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\">");
                 bugReportBuilder.AppendLine($"      <title>");
-                bugReportBuilder.AppendLine($"         {BugReportInfo.Topic?.GameVersion}] - {BugReportInfo.Topic?.Description} :: Green Hell Bug Reports");
+                bugReportBuilder.AppendLine($"         {LocalBugReportInfo.Topic?.GameVersion}] - {LocalBugReportInfo.Topic?.Description} :: Green Hell Bug Reports");
                 bugReportBuilder.AppendLine($"      </title>");
                 bugReportBuilder.AppendLine($"  </head>");
                 bugReportBuilder.AppendLine($"  <body>");
                 bugReportBuilder.AppendLine($"      <div class=\"topic\">");
-                bugReportBuilder.AppendLine($"          [{BugReportInfo.Topic?.GameVersion}] - {BugReportInfo.Topic?.Description}");
+                bugReportBuilder.AppendLine($"          [{LocalBugReportInfo.Topic?.GameVersion}] - {LocalBugReportInfo.Topic?.Description}");
                 bugReportBuilder.AppendLine($"      </div>");
                 bugReportBuilder.AppendLine($"      <div class=\"content\">");
-                bugReportBuilder.AppendLine($"          <br>Type: {BugReportInfo.BugReportType}");
-                bugReportBuilder.AppendLine($"          <br>Description: {BugReportInfo.Description}");
+                bugReportBuilder.AppendLine($"          <br>Type: {LocalBugReportInfo.BugReportType}");
+                bugReportBuilder.AppendLine($"          <br>Description: {LocalBugReportInfo.Description}");
                 bugReportBuilder.AppendLine($"          <ul>Steps to Reproduce:");
-                foreach (var step in BugReportInfo.StepsToReproduce)
+                foreach (var step in LocalBugReportInfo.StepsToReproduce)
                 {
                     bugReportBuilder.AppendLine($"          <li>Step {step.Rank}: {step.Description}</li>");
                 }
                 bugReportBuilder.AppendLine($"             </ul>");
-                bugReportBuilder.AppendLine($"               <br>Reproduce rate: {BugReportInfo.ReproduceRate}");
-                bugReportBuilder.AppendLine($"               <br>Expected behaviour: {BugReportInfo.ExpectedBehaviour}");
+                bugReportBuilder.AppendLine($"               <br>Reproduce rate: {LocalBugReportInfo.ReproduceRate}");
+                bugReportBuilder.AppendLine($"               <br>Expected behaviour: {LocalBugReportInfo.ExpectedBehaviour}");
                 bugReportBuilder.AppendLine($"              <ul>My PC spec:");
-                bugReportBuilder.AppendLine($"                  <li>OS: {BugReportInfo.PcSpecs?.OS}</li>");
-                bugReportBuilder.AppendLine($"                  <li>CPU: {BugReportInfo.PcSpecs?.CPU}</li>");
-                bugReportBuilder.AppendLine($"                  <li>GPU: {BugReportInfo.PcSpecs?.GPU}</li>");
-                bugReportBuilder.AppendLine($"                  <li>RAM: {BugReportInfo.PcSpecs?.RAM}</li>");
+                bugReportBuilder.AppendLine($"                  <li>OS: {LocalBugReportInfo.PcSpecs?.OS}</li>");
+                bugReportBuilder.AppendLine($"                  <li>CPU: {LocalBugReportInfo.PcSpecs?.CPU}</li>");
+                bugReportBuilder.AppendLine($"                  <li>GPU: {LocalBugReportInfo.PcSpecs?.GPU}</li>");
+                bugReportBuilder.AppendLine($"                  <li>RAM: {LocalBugReportInfo.PcSpecs?.RAM}</li>");
                 bugReportBuilder.AppendLine($"              </ul>");
-                bugReportBuilder.AppendLine($"              <br>Note:  {BugReportInfo.Note}");
+                bugReportBuilder.AppendLine($"              <br>Note:  {LocalBugReportInfo.Note}");
                 bugReportBuilder.AppendLine($"          </div>");
                 bugReportBuilder.AppendLine($"      </body>");
                 bugReportBuilder.AppendLine($"</html>");
@@ -543,13 +579,13 @@ namespace CommunityTools
                 bugReportBuilder.AppendLine($"{{");
                 bugReportBuilder.AppendLine($"\"Topic\":");
                 bugReportBuilder.AppendLine($"{{ ");
-                bugReportBuilder.AppendLine($"\"GameVersion\": \"{BugReportInfo.Topic?.GameVersion}\",");
-                bugReportBuilder.AppendLine($"\"Description\": \"{BugReportInfo.Topic?.Description}\"");
+                bugReportBuilder.AppendLine($"\"GameVersion\": \"{LocalBugReportInfo.Topic?.GameVersion}\",");
+                bugReportBuilder.AppendLine($"\"Description\": \"{LocalBugReportInfo.Topic?.Description}\"");
                 bugReportBuilder.AppendLine($"}},");
-                bugReportBuilder.AppendLine($"\"Type\": \"{BugReportInfo.BugReportType}\",");
-                bugReportBuilder.AppendLine($"\"Description\": \"{BugReportInfo.Description}\",");
+                bugReportBuilder.AppendLine($"\"Type\": \"{LocalBugReportInfo.BugReportType}\",");
+                bugReportBuilder.AppendLine($"\"Description\": \"{LocalBugReportInfo.Description}\",");
                 bugReportBuilder.AppendLine($"\"StepsToReproduce\": [");
-                foreach (var step in BugReportInfo.StepsToReproduce)
+                foreach (var step in LocalBugReportInfo.StepsToReproduce)
                 {
                     bugReportBuilder.AppendLine($"{{");
                     bugReportBuilder.AppendLine($"\"Rank\": {step.Rank},");
@@ -557,17 +593,17 @@ namespace CommunityTools
                     bugReportBuilder.AppendLine($"}},");
                 }
                 bugReportBuilder.AppendLine($"],");
-                bugReportBuilder.AppendLine($"\"ReproduceRate\": \"{BugReportInfo.ReproduceRate}\",");
-                bugReportBuilder.AppendLine($"\"ExpectedBehaviour\": \"{BugReportInfo.ExpectedBehaviour}\",");
+                bugReportBuilder.AppendLine($"\"ReproduceRate\": \"{LocalBugReportInfo.ReproduceRate}\",");
+                bugReportBuilder.AppendLine($"\"ExpectedBehaviour\": \"{LocalBugReportInfo.ExpectedBehaviour}\",");
                 bugReportBuilder.AppendLine($"\"PcSpecs\":");
                 bugReportBuilder.AppendLine($"{{");
-                bugReportBuilder.AppendLine($"\"OS\": \"{BugReportInfo.PcSpecs?.OS}\",");
-                bugReportBuilder.AppendLine($"\"CPU\": \"{BugReportInfo.PcSpecs?.CPU}\",");
-                bugReportBuilder.AppendLine($"\"GPU\": \"{BugReportInfo.PcSpecs?.GPU}\",");
-                bugReportBuilder.AppendLine($"\"RAM\": \"{BugReportInfo.PcSpecs?.RAM}\"");
+                bugReportBuilder.AppendLine($"\"OS\": \"{LocalBugReportInfo.PcSpecs?.OS}\",");
+                bugReportBuilder.AppendLine($"\"CPU\": \"{LocalBugReportInfo.PcSpecs?.CPU}\",");
+                bugReportBuilder.AppendLine($"\"GPU\": \"{LocalBugReportInfo.PcSpecs?.GPU}\",");
+                bugReportBuilder.AppendLine($"\"RAM\": \"{LocalBugReportInfo.PcSpecs?.RAM}\"");
                 bugReportBuilder.AppendLine($"}},");
-                bugReportBuilder.AppendLine($"\"MapCoordinates\": \"{BugReportInfo.MapCoordinates?.ToString()}\",");
-                bugReportBuilder.AppendLine($"\"Note\": \"{BugReportInfo.Note}\"");
+                bugReportBuilder.AppendLine($"\"MapCoordinates\": \"{LocalBugReportInfo.MapCoordinates?.ToString()}\",");
+                bugReportBuilder.AppendLine($"\"Note\": \"{LocalBugReportInfo.Note}\"");
                 bugReportBuilder.AppendLine($"}}");
 
                 ModAPI.Log.Write(bugReportBuilder.ToString());
