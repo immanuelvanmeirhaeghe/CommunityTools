@@ -1,57 +1,21 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Reflection;
-using System.Runtime.InteropServices;
-using System.Text;
+using CommunityTools.Data.Enums;
 using UnityEngine;
 
-namespace CommunityTools.GameObjects
+namespace CommunityTools.Data.Reporting
 {
-    class BugReportInfo : MonoBehaviour
+
+    public class BugReportInfo
     {
-        private static string _BugReportType = $"| UI | Crafting | Building | Multiplayer | Save Game | Items | Inventory | Other |";
-        private static string _ReproduceRate = $"At least once";
-        private static string _TopicDescription = $"Short topic describing the bug.";
-        private static string _Description = $"Created with {nameof(CommunityTools)}";
-        private static string _ExpectedBehaviour = $"Describe what you would have expected to happen in stead.";
-        private static string _StepsToReproduce = $"Use a semi-colon to separate each step description like this.; Then this is step 2.; And this will become step 3.";
-        private static string _Note = $"You can add any additional info here, like links to screenshots.";
-
-        private static BugReportInfo s_Instance;
-
-        public enum BugReportField
-        {
-            Topic,
-            BugReportType,
-            Description,
-            StepsToReproduce,
-            ReproduceRate,
-            ExpectedBehaviour,
-            PcSpecs,
-            MapCoordinates,
-            Note
-        }
-
         public BugReportInfo()
         {
-            BugReportType = _BugReportType;
-            Topic = GetTopic(_TopicDescription);
-            Description = _Description;
-            ReproduceRate = _ReproduceRate;
-            ExpectedBehaviour = _ExpectedBehaviour;
-            StepsToReproduce = GetStepsToReproduce(_StepsToReproduce);
+            Topic = GetTopic(BugReportInfoHelpers.TopicPlaceholderText);
+            StepsToReproduce = GetStepsToReproduce(BugReportInfoHelpers.StepsToReproducePlaceholderText);
             PcSpecs = GetPcSpecs();
             MapCoordinates = GetMapCoordinates(Player.Get());
-            Note = GetScreenshotInfo(_Note);
-
-            s_Instance = this;
-        }
-
-        public static BugReportInfo Get()
-        {
-            return s_Instance;
+            Note = GetScreenshotInfo(BugReportInfoHelpers.NotePlaceholderText);
         }
 
         /// <summary>
@@ -61,14 +25,13 @@ namespace CommunityTools.GameObjects
 
         /// <summary>
         /// Type of bug.
-        /// Example: Save Game, UI, Multiplayer...
         /// </summary>
-        public string BugReportType { get; set; }
+        public BugReportTypes BugReportType { get; set; } = BugReportTypes.Other;
 
         /// <summary>
         /// Short description of the bug
         /// </summary>
-        public string Description { get; set; }
+        public string Description { get; set; } = BugReportInfoHelpers.DescriptionPlaceholderText;
 
         /// <summary>
         /// Describe the steps to reproduce the bug
@@ -77,14 +40,13 @@ namespace CommunityTools.GameObjects
 
         /// <summary>
         /// How many times did the bug occur?
-        /// Example: Once, Always.
         /// </summary>
-        public string ReproduceRate { get; set; }
+        public ReproduceRates ReproduceRate { get; set; } = ReproduceRates.Other;
 
         /// <summary>
         /// Describe what should have happened, if there was no bug
         /// </summary>
-        public string ExpectedBehaviour { get; set; }
+        public string ExpectedBehaviour { get; set; } = BugReportInfoHelpers.ExpectedBehaviourPlaceholderText;
 
         /// <summary>
         /// Technical PC specifications
@@ -102,7 +64,7 @@ namespace CommunityTools.GameObjects
         /// </summary>
         public string Note { get; set; }
 
-        public static MapCoordinates GetMapCoordinates(Player player)
+        public MapCoordinates GetMapCoordinates(Player player)
         {
             player.GetGPSCoordinates(out int gps_lat, out int gps_long);
 
@@ -115,7 +77,7 @@ namespace CommunityTools.GameObjects
             return MapCoordinates;
         }
 
-        public static PcSpecs GetPcSpecs()
+        public PcSpecs GetPcSpecs()
         {
             var PcSpecs = new PcSpecs
             {
@@ -128,7 +90,7 @@ namespace CommunityTools.GameObjects
             return PcSpecs;
         }
 
-        public static Topic GetTopic(string description = "")
+        public Topic GetTopic(string description = "")
         {
             var Topic = new Topic
             {
@@ -146,10 +108,10 @@ namespace CommunityTools.GameObjects
         ///This is the first step description;this is the 2nd step description...;This is the 3rd step description etc;etc;
         /// </summary>
         /// <returns></returns>
-        public static List<StepToReproduce> GetStepsToReproduce(string stepsToReproduce, char stepSeparator = ';')
+        public List<StepToReproduce> GetStepsToReproduce(string stepsToReproduceString)
         {
             var StepsToReproduce = new List<StepToReproduce>();
-            string[] steps = stepsToReproduce?.Split(stepSeparator);
+            string[] steps = stepsToReproduceString?.Trim()?.Split(';');
 
             // Add by default a step
             int rank = 1;
@@ -172,7 +134,7 @@ namespace CommunityTools.GameObjects
         /// Take a screenshot.and set the link in the bug report notes.
         /// </summary>
         /// <returns></returns>
-        public static string GetScreenshotInfo(string note = "")
+        public string GetScreenshotInfo(string note = "")
         {
             string timeStamp = DateTime.Now.ToString("yyyyMMddThhmmmsZ");
             string fileName = $"{nameof(BugReportInfo)}_{timeStamp}.png";
@@ -189,5 +151,7 @@ namespace CommunityTools.GameObjects
 
             return note;
         }
+
     }
+
 }

@@ -9,7 +9,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>CommunityTools</RootNamespace>
     <AssemblyName>CommunityTools</AssemblyName>
-    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
   </PropertyGroup>
@@ -347,13 +347,20 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="GameObjects\BugReportInfo.cs" />
-    <Compile Include="GameObjects\MapCoordinates.cs" />
-    <Compile Include="GameObjects\PcSpecs.cs" />
-    <Compile Include="GameObjects\StepsToReproduce.cs" />
-    <Compile Include="GameObjects\Topic.cs" />
-    <Compile Include="GameObjects\Extensions\PlayerExtended.cs" />
+    <Compile Include="Data\Reporting\BugReportInfo.cs" />
+    <Compile Include="Data\Enums.cs" />
+    <Compile Include="Data\Interfaces\IConfigurableMod.cs" />
+    <Compile Include="Data\Interfaces\IConfigurableModButton.cs" />
+    <Compile Include="Data\Reporting\BugReportInfoHelpers.cs" />
+    <Compile Include="Data\Reporting\MapCoordinates.cs" />
+    <Compile Include="Data\Modding\ConfigurableMod.cs" />
+    <Compile Include="Data\Modding\ConfigurableModButton.cs" />
+    <Compile Include="Data\Reporting\PcSpecs.cs" />
+    <Compile Include="Data\Reporting\StepsToReproduce.cs" />
+    <Compile Include="Data\Reporting\Topic.cs" />
+    <Compile Include="Extensions\PlayerExtended.cs" />
     <Compile Include="CommunityTools.cs" />
+    <Compile Include="Managers\StylingManager.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

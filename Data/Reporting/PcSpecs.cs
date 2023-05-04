@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using UnityEngine;
 
-namespace CommunityTools.GameObjects
+namespace CommunityTools.Data.Reporting
 {
-    class PcSpecs : MonoBehaviour
+    public class PcSpecs
     {
         public string OS { get; set; }
 

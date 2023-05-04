@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using UnityEngine;
 
-namespace CommunityTools.GameObjects
+namespace CommunityTools.Data.Reporting
 {
-    class MapCoordinates : MonoBehaviour
+    public class MapCoordinates
     {
         public int GpsLat { get; set; }
 

@@ -1,8 +1,6 @@
-﻿using UnityEngine;
-
-namespace CommunityTools.GameObjects
+﻿namespace CommunityTools.Data.Reporting
 {
-    class Topic : MonoBehaviour
+    public class Topic
     {
         /// <summary>
         /// Official game version

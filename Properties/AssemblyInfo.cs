@@ -8,10 +8,10 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTitle("ModAPI.CommunityTools")]
 [assembly: AssemblyDescription("CommunityTools is a mod for Green Hell that aims to be a tool for the gamer community and modders. For now, it helps in getting game metadata and creating a bug report. Output can be found in the game installation data folder in subfolder Logs.")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("Dragon Legion")]
+[assembly: AssemblyCompany("[Dragon Legion]Immaanuel")]
 [assembly: AssemblyProduct("ModAPI.CommunityTools")]
-[assembly: AssemblyCopyright("Copyright ©  2020")]
-[assembly: AssemblyTrademark("")]
+[assembly: AssemblyCopyright("Copyright ©  2023")]
+[assembly: AssemblyTrademark("Freeware")]
 [assembly: AssemblyCulture("")]
 
 // Setting ComVisible to false makes the types in this assembly not visible 
@@ -29,5 +29,5 @@ using System.Runtime.InteropServices;
 //      Build Number
 //      Revision
 //
-[assembly: AssemblyVersion("1.0.2.6")]
-[assembly: AssemblyFileVersion("1.0.2.6")]
+[assembly: AssemblyVersion("1.0.2.7")]
+[assembly: AssemblyFileVersion("1.0.2.7")]
