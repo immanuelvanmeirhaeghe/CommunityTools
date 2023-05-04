@@ -12,7 +12,7 @@
     <EN>CommunityTools</EN>
   </Name>
   <Description>
-    <EN>CommunityTools is a mod for Green Hell that aims to be a tool for the gamer community. A player can contact Creepy Jar by mail, go to the Steam Guide, Steam Forum or create bug reports.</EN>
+    <EN>CommunityTools is a mod that aims to be a tool for the gamer community and modders: Enable the mod UI by pressing [LeftAlt] + [B] or the key configurable in ModAPI. It helps in getting game metadata. Take screenshots: These are placed inside the game installation path Logs Screenshots as timestamped PNG files. Create bug reports: These are placed inside the game installation path Logs folder as timestamped HTML and JSON files. Open official Creepy Jar and ModAPI support urls.</EN>
   </Description>
   <Version>1.0.2.7</Version>
 </Mod>
