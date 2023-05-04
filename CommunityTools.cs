@@ -69,7 +69,9 @@ namespace CommunityTools
 
         public string BugReportFile { get; set; }
         public string JsonReport { get; set; }
+        public string JsonFilePath { get; set; }
         public string HtmlReport { get; set; }
+        public string HtmlFilePath { get; set; }
         public BugReportInfo BugReportInfo { get; set; }
         public int SelectedBugReportTypeIndex { get; set; }
         public int SelectedReproduceRateIndex { get; set; }
@@ -360,7 +362,7 @@ namespace CommunityTools
             BugReportScreenStartPositionX = BugReportScreen.x;
             BugReportScreenStartPositionY = BugReportScreen.y;
             BugReportScreenTotalWidth = BugReportScreen.width;
-            using (var modContentScope = new GUILayout.VerticalScope(GUI.skin.box))
+            using (new GUILayout.VerticalScope(GUI.skin.box))
             {
                 BugReportScreenMenuBox();
 
@@ -466,10 +468,14 @@ namespace CommunityTools
                             }
                             if (ShowCommunityToolsInfo)
                             {
-                                ModInfoBox();
+                                CommunityToolsInfoBox();
                             }
                             MultiplayerOptionBox();
-                            OnlineSupportOptionsBox();                         
+                            OnlineSupportOptionsBox();
+                            if (GUILayout.Button($"Log a bug", GUI.skin.button, GUILayout.Width(150f)))
+                            {
+                                ToggleShowUI(1);
+                            }
                         }
                     }
                 }
@@ -484,7 +490,7 @@ namespace CommunityTools
             }
         }
 
-        protected virtual void ModInfoBox()
+        protected virtual void CommunityToolsInfoBox()
         {
             using (new GUILayout.VerticalScope(GUI.skin.box))
             {
@@ -648,14 +654,12 @@ namespace CommunityTools
 
         protected virtual void ShowMainMenu()
         {
-            MainMenu mm = (MainMenu)MainMenuManager.Get().GetScreen(typeof(MainMenu));
-            mm.Show();
+           MenuInGameManager.Get().ShowScreen(typeof(MainMenu));
         }
 
-        protected virtual void ShowDebugMenu()
+        protected virtual void ShowMenuDebugSelectMode()
         {
-            MenuDebugSelectMode mm = (MenuDebugSelectMode)MainMenuManager.Get().GetScreen(typeof(MenuDebugSelectMode));
-            mm.Show();
+            MenuInGameManager.Get().ShowScreen(typeof(MenuDebugSelectMode));
         }
 
         protected virtual void CloseWindow(int controlId)
@@ -899,125 +903,58 @@ namespace CommunityTools
        protected virtual void  CreateReports()
         {
             string timeStamp = DateTime.Now.ToString("yyyyMMddThhmmmsZ");
-            string path = Path.Combine(ReportPath, $"{nameof(BugReportFile)}_{timeStamp}.html");
+
+            HtmlFilePath = Path.Combine(ReportPath, $"{nameof(BugReportFile)}_{timeStamp}.html");
             BugReportFile = CreateBugReportAsHtml();
             if (!string.IsNullOrEmpty(BugReportFile))
             {
-                File.WriteAllText(path, BugReportFile);
+                File.WriteAllText(HtmlFilePath, BugReportFile);
                 ShowHUDBigInfo(HUDBigInfoMessage(ReportCreatedMessage($"html report in {ReportPath}"), MessageType.Info, Color.green));
-                HtmlReport = path;
+               
                 BugReportFile = string.Empty;
             }
-
-            path = Path.Combine(ReportPath, $"{nameof(BugReportFile)}_{timeStamp}.json");
+            
+            JsonFilePath = Path.Combine(ReportPath, $"{nameof(BugReportFile)}_{timeStamp}.json");
             BugReportFile = GetBugReportAsJSON();
             if (!string.IsNullOrEmpty(BugReportFile))
             {
-                File.WriteAllText(path, BugReportFile);
+                File.WriteAllText(JsonFilePath, BugReportFile);
                 ShowHUDBigInfo(HUDBigInfoMessage(ReportCreatedMessage($"json report in {ReportPath}"), MessageType.Info, Color.green));
-                JsonReport = path;
+
                 BugReportFile = string.Empty;
             }
         }
 
-        protected virtual string ReportCreatedMessage(string htmlReportName) 
-            => $"<color=#{ColorUtility.ToHtmlStringRGBA(Color.green)}>System</color>:\n{htmlReportName} created!";
+        protected virtual string ReportCreatedMessage(string htmlReportName)
+        {
+            return $"<color=#{ColorUtility.ToHtmlStringRGBA(Color.green)}>System</color>:\n{htmlReportName} created!";
+        }
 
         protected string CreateBugReportAsHtml()
         {
-            StringBuilder bugReportBuilder = new StringBuilder($"\n");
-
             try
             {
-                bugReportBuilder.AppendLine($"<!DOCTYPE html>");
-                bugReportBuilder.AppendLine($"<html class=\"client\">");
-                bugReportBuilder.AppendLine($"  <head>");
-                bugReportBuilder.AppendLine($"      <meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\">");
-                bugReportBuilder.AppendLine($"      <title>");
-                bugReportBuilder.AppendLine($"         {BugReportInfo.Topic?.GameVersion}] - {BugReportInfo.Topic?.Description} :: Green Hell Bug Reports");
-                bugReportBuilder.AppendLine($"      </title>");
-                bugReportBuilder.AppendLine($"  </head>");
-                bugReportBuilder.AppendLine($"  <body>");
-                bugReportBuilder.AppendLine($"      <div class=\"topic\">");
-                bugReportBuilder.AppendLine($"          [{BugReportInfo.Topic?.GameVersion}] - {BugReportInfo.Topic?.Description}");
-                bugReportBuilder.AppendLine($"      </div>");
-                bugReportBuilder.AppendLine($"      <div class=\"content\">");
-                bugReportBuilder.AppendLine($"          <br>Type: {BugReportInfo.BugReportType}");
-                bugReportBuilder.AppendLine($"          <br>Description: {BugReportInfo.Description}");
-                bugReportBuilder.AppendLine($"          <ul>Steps to Reproduce:");
-                foreach (var step in BugReportInfo.StepsToReproduce)
-                {
-                    bugReportBuilder.AppendLine($"          <li>Step {step.Rank}: {step.Description}</li>");
-                }
-                bugReportBuilder.AppendLine($"             </ul>");
-                bugReportBuilder.AppendLine($"               <br>Reproduce rate: {BugReportInfo.ReproduceRate}");
-                bugReportBuilder.AppendLine($"               <br>Expected behaviour: {BugReportInfo.ExpectedBehaviour}");
-                bugReportBuilder.AppendLine($"              <ul>My PC spec:");
-                bugReportBuilder.AppendLine($"                  <li>OS: {BugReportInfo.PcSpecs?.OS}</li>");
-                bugReportBuilder.AppendLine($"                  <li>CPU: {BugReportInfo.PcSpecs?.CPU}</li>");
-                bugReportBuilder.AppendLine($"                  <li>GPU: {BugReportInfo.PcSpecs?.GPU}</li>");
-                bugReportBuilder.AppendLine($"                  <li>RAM: {BugReportInfo.PcSpecs?.RAM}</li>");
-                bugReportBuilder.AppendLine($"              </ul>");
-                bugReportBuilder.AppendLine($"              <br>Note:  {BugReportInfo.Note}");
-                bugReportBuilder.AppendLine($"          </div>");
-                bugReportBuilder.AppendLine($"      </body>");
-                bugReportBuilder.AppendLine($"</html>");
-
-                ModAPI.Log.Write(bugReportBuilder.ToString());
-
-                return bugReportBuilder.ToString();
+                HtmlReport = BugReportInfoHelpers.CreateBugReportAsHtml(BugReportInfo);
+                return HtmlReport;
             }
             catch (Exception exc)
             {
-                ModAPI.Log.Write($"[{nameof(CommunityToolsScreen)}.{nameof(CommunityToolsScreen)}:{nameof(CreateBugReportAsHtml)}] throws exception: {exc.Message}");
-                return bugReportBuilder.ToString();
+                HandleException(exc, nameof(CreateBugReportAsHtml));
+                return string.Empty;
             }
         }
 
         protected string GetBugReportAsJSON()
         {
-            StringBuilder bugReportBuilder = new StringBuilder("\n");
-
             try
             {
-                bugReportBuilder.AppendLine($"{{");
-                bugReportBuilder.AppendLine($"\"Topic\":");
-                bugReportBuilder.AppendLine($"{{ ");
-                bugReportBuilder.AppendLine($"\"GameVersion\": \"{BugReportInfo.Topic?.GameVersion}\",");
-                bugReportBuilder.AppendLine($"\"Description\": \"{BugReportInfo.Topic?.Description}\"");
-                bugReportBuilder.AppendLine($"}},");
-                bugReportBuilder.AppendLine($"\"Type\": \"{BugReportInfo.BugReportType}\",");
-                bugReportBuilder.AppendLine($"\"Description\": \"{BugReportInfo.Description}\",");
-                bugReportBuilder.AppendLine($"\"StepsToReproduce\": [");
-                foreach (var step in BugReportInfo.StepsToReproduce)
-                {
-                    bugReportBuilder.AppendLine($"{{");
-                    bugReportBuilder.AppendLine($"\"Rank\": {step.Rank},");
-                    bugReportBuilder.AppendLine($"\"Description\": \"{step.Description}\", ");
-                    bugReportBuilder.AppendLine($"}},");
-                }
-                bugReportBuilder.AppendLine($"],");
-                bugReportBuilder.AppendLine($"\"ReproduceRate\": \"{BugReportInfo.ReproduceRate}\",");
-                bugReportBuilder.AppendLine($"\"ExpectedBehaviour\": \"{BugReportInfo.ExpectedBehaviour}\",");
-                bugReportBuilder.AppendLine($"\"PcSpecs\":");
-                bugReportBuilder.AppendLine($"{{");
-                bugReportBuilder.AppendLine($"\"OS\": \"{BugReportInfo.PcSpecs?.OS}\",");
-                bugReportBuilder.AppendLine($"\"CPU\": \"{BugReportInfo.PcSpecs?.CPU}\",");
-                bugReportBuilder.AppendLine($"\"GPU\": \"{BugReportInfo.PcSpecs?.GPU}\",");
-                bugReportBuilder.AppendLine($"\"RAM\": \"{BugReportInfo.PcSpecs?.RAM}\"");
-                bugReportBuilder.AppendLine($"}},");
-                bugReportBuilder.AppendLine($"\"MapCoordinates\": \"{BugReportInfo.MapCoordinates?.ToString()}\",");
-                bugReportBuilder.AppendLine($"\"Note\": \"{BugReportInfo.Note}\"");
-                bugReportBuilder.AppendLine($"}}");
-
-                ModAPI.Log.Write(bugReportBuilder.ToString());
-
-                return bugReportBuilder.ToString();
+                JsonReport = BugReportInfoHelpers.CreateBugReportAsJSON(BugReportInfo);
+                return JsonReport;
             }
             catch (Exception exc)
             {
-                ModAPI.Log.Write($"[{(ModName)}.{nameof(CommunityToolsScreen)}:{nameof(GetBugReportAsJSON)}] throws exception: {exc.Message}");
-                return bugReportBuilder.ToString();
+                HandleException(exc, nameof(GetBugReportAsJSON));
+                return string.Empty;
             }
         }
     }
