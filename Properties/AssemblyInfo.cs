@@ -6,7 +6,7 @@ using System.Runtime.InteropServices;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("ModAPI.CommunityTools")]
-[assembly: AssemblyDescription("CommunityTools is a mod for Green Hell that aims to be a tool for the gamer community and modders. For now, it helps in getting game metadata and creating a bug report. Output can be found in the game installation data folder in subfolder Logs.")]
+[assembly: AssemblyDescription("CommunityTools is a mod that aims to be a tool for the gamer community and modders: Enable the mod UI by pressing [LeftAlt] + [B] or the key configurable in ModAPI. It helps in getting game metadata. Take screenshots: These are placed inside the game installation path Logs Screenshots as timestamped PNG files. Create bug reports: These are placed inside the game installation path Logs folder as timestamped HTML and JSON files. Open official Creepy Jar and ModAPI support urls.")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("[Dragon Legion]Immaanuel")]
 [assembly: AssemblyProduct("ModAPI.CommunityTools")]

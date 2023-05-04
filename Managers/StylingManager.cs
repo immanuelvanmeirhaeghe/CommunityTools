@@ -241,6 +241,13 @@ namespace CommunityTools.Managers
             stretchWidth = true,
             wordWrap = true
         };
+        public GUIStyle FormInputTextAreaField => new GUIStyle(GUI.skin.textArea)
+        {
+            alignment = TextAnchor.MiddleRight,
+            fontSize = DefaultFontSize,
+            stretchWidth = true,
+            wordWrap = true
+        };
         public GUIStyle CommentLabel => new GUIStyle(GUI.skin.label)
         {
             alignment = TextAnchor.MiddleLeft,

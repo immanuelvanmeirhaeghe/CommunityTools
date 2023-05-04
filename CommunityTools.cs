@@ -14,17 +14,20 @@ using UnityEngine;
 namespace CommunityTools
 {
     /// <summary>
-    /// CommunityTools is a mod for Green Hell that aims to be a tool for the gamer community and modders.
-    /// For now, it helps in getting game metadata and creating a bug report.
-    /// Output can be found in the game installation data folder in subfolder Logs.
-    /// Enable the mod UI by pressing LeftAlt+B.
+    /// CommunityTools is a mod that aims to be a tool for the gamer community and modders:
+    /// Enable the mod UI by pressing [LeftAlt] + [B] or the key configurable in ModAPI.
+    /// It helps in getting game metadata
+    /// Take screenshots. These are placed inside the {game installation path}\Logs\Screenshots as timestamped PNG files.
+    /// Create bug reports.  These are placed inside the {game installation path}\Logs folder as timestamped HTML and JSON files.
+    /// Open official Creepy Jar and ModAPI support urls.
     /// </summary>
     public class CommunityTools : MonoBehaviour
     {
         private static CommunityTools Instance;
         private static readonly string ModName = nameof(CommunityTools);
-        private static readonly string ReportPath = $"{Application.dataPath.Replace("GH_Data", "Logs")}/{nameof(CommunityTools)}.log";
+        private static readonly string LogFilePath = $"{Application.dataPath.Replace("GH_Data", "Logs")}/{nameof(CommunityTools)}.log";
         private static readonly string RuntimeConfiguration = Path.Combine(Application.dataPath.Replace("GH_Data", "Mods"), $"{nameof(RuntimeConfiguration)}.xml");
+        private static readonly string ReportPath = $"{Application.dataPath.Replace("GH_Data", "Logs")}";
 
         private static float CommunityToolsScreenTotalWidth { get; set; } = 700f;
         private static float CommunityToolsScreenTotalHeight { get; set; } = 350f;
@@ -472,6 +475,10 @@ namespace CommunityTools
                             }
                             MultiplayerOptionBox();
                             OnlineSupportOptionsBox();
+                            if (GUILayout.Button($"Take a screenshot", GUI.skin.button, GUILayout.Width(150f)))
+                            {
+                                TakeScreenshot();
+                            }
                             if (GUILayout.Button($"Log a bug", GUI.skin.button, GUILayout.Width(150f)))
                             {
                                 ToggleShowUI(1);
@@ -496,7 +503,7 @@ namespace CommunityTools
             {
                 ModInfoScrollViewPosition = GUILayout.BeginScrollView(ModInfoScrollViewPosition, GUI.skin.scrollView, GUILayout.MinHeight(150f));
 
-                GUILayout.Label("Mod Info", LocalStylingManager.ColoredSubHeaderLabel(Color.cyan));
+                GUILayout.Label("Mod Info", LocalStylingManager.ColoredSubHeaderLabel(LocalStylingManager.DefaultHighlightColor));
 
                 using (new GUILayout.HorizontalScope(GUI.skin.box))
                 {
@@ -519,8 +526,8 @@ namespace CommunityTools
                     GUILayout.Label($"{SelectedMod.Version}", LocalStylingManager.FormFieldValueLabel);
                 }
 
-                GUILayout.Label("Buttons Info", LocalStylingManager.ColoredSubHeaderLabel(Color.cyan));
-                foreach (var configurableModButton in SelectedMod.ConfigurableModButtons)
+                GUILayout.Label("Buttons Info", LocalStylingManager.ColoredSubHeaderLabel(LocalStylingManager.DefaultHighlightColor));
+                foreach (IConfigurableModButton configurableModButton in SelectedMod.ConfigurableModButtons)
                 {
                     using (new GUILayout.HorizontalScope(GUI.skin.box))
                     {
@@ -530,7 +537,7 @@ namespace CommunityTools
                     using (new GUILayout.HorizontalScope(GUI.skin.box))
                     {
                         GUILayout.Label($"{nameof(IConfigurableModButton.KeyBinding)}:", LocalStylingManager.FormFieldNameLabel);
-                        GUILayout.Label($"{configurableModButton.KeyBinding}", LocalStylingManager.FormFieldValueLabel);
+                        GUILayout.Label($"{KeyCode.LeftAlt}+{configurableModButton.KeyBinding}", LocalStylingManager.FormFieldValueLabel);
                     }
                 }
 
@@ -732,24 +739,26 @@ namespace CommunityTools
                     }
                 }
 
-                if (!string.IsNullOrEmpty(HtmlReport))
+                if (!string.IsNullOrEmpty(HtmlFilePath))
                 {
                     using (new GUILayout.HorizontalScope(GUI.skin.box))
                     {
                         if (GUILayout.Button($"Open HTML report", GUI.skin.button, GUILayout.Width(150f)))
                         {
-                            Application.OpenURL(HtmlReport);
+                            ShowMainMenu();
+                            Application.OpenURL(HtmlFilePath);
                         }
                     }
                 }
 
-                if (!string.IsNullOrEmpty(JsonReport))
+                if (!string.IsNullOrEmpty(JsonFilePath))
                 {
                     using (new GUILayout.HorizontalScope(GUI.skin.box))
                     {
                         if (GUILayout.Button($"Open JSON report", GUI.skin.button, GUILayout.Width(150f)))
                         {
-                            Application.OpenURL(JsonReport);
+                            ShowMainMenu();
+                            Application.OpenURL(JsonFilePath);
                         }
                     }
                 }
@@ -780,9 +789,11 @@ namespace CommunityTools
                 string[] bugReportTypes = BugReportInfoHelpers.GetBugReportTypes();
                 string[] reproduceRates = BugReportInfoHelpers.GetReproduceRates();
                 int _SelectedBugReportTypeIndex = SelectedBugReportTypeIndex;
+                BugReportTypes _SelectedBugReportType = EnumUtils<BugReportTypes>.GetValue(bugReportTypes[SelectedBugReportTypeIndex]);
                 int _SelectedReproduceRateIndex = SelectedReproduceRateIndex;
+                ReproduceRates _SelectedReproduceRate = EnumUtils<ReproduceRates>.GetValue(reproduceRates[SelectedReproduceRateIndex]);
 
-                GUILayout.Label("Bug Report Form", LocalStylingManager.ColoredSubHeaderLabel(LocalStylingManager.DefaultHeaderColor));
+                GUILayout.Label("Bug Report Form", LocalStylingManager.ColoredSubHeaderLabel(LocalStylingManager.DefaultHighlightColor));
 
                 using (new GUILayout.HorizontalScope(GUI.skin.box))
                 {
@@ -791,28 +802,28 @@ namespace CommunityTools
                 }
                 using (new GUILayout.HorizontalScope(GUI.skin.box))
                 {
-                    BugReportInfo.BugReportType = EnumUtils<BugReportTypes>.GetValue(bugReportTypes[SelectedBugReportTypeIndex]);
+                    BugReportInfo.Type = EnumUtils<BugReportTypes>.GetValue(bugReportTypes[SelectedBugReportTypeIndex]);
 
-                    GUILayout.Label(nameof(BugReportInfo.BugReportType), LocalStylingManager.FormFieldNameLabel);
-                    SelectedBugReportTypeIndex = GUILayout.SelectionGrid(SelectedBugReportTypeIndex, bugReportTypes, bugReportTypes.Length, LocalStylingManager.ColoredSelectedGridButton(_SelectedBugReportTypeIndex!=SelectedBugReportTypeIndex));
+                    GUILayout.Label(nameof(BugReportInfo.Type), LocalStylingManager.FormFieldNameLabel);
+                    SelectedBugReportTypeIndex = GUILayout.SelectionGrid(SelectedBugReportTypeIndex, bugReportTypes, bugReportTypes.Length, LocalStylingManager.ColoredSelectedGridButton(_SelectedBugReportTypeIndex == SelectedBugReportTypeIndex));
                     if (_SelectedBugReportTypeIndex != SelectedBugReportTypeIndex)
                     {
-                        BugReportInfo.BugReportType =EnumUtils<BugReportTypes>.GetValue(bugReportTypes[SelectedBugReportTypeIndex]);
+                        BugReportInfo.Type =EnumUtils<BugReportTypes>.GetValue(bugReportTypes[SelectedBugReportTypeIndex]);
                     }
                 }
                 using (new GUILayout.HorizontalScope(GUI.skin.box))
                 {
                     GUILayout.Label(nameof(BugReportInfo.Description), LocalStylingManager.FormFieldNameLabel);
-                    BugReportInfo.Description = GUILayout.TextArea(Description, LocalStylingManager.FormFieldValueLabel);
+                    BugReportInfo.Description = GUILayout.TextArea(BugReportInfo.Description, LocalStylingManager.FormInputTextAreaField);
                 }
                 using (new GUILayout.HorizontalScope(GUI.skin.box))
                 {
                     GUILayout.Label(nameof(BugReportInfo.StepsToReproduce), LocalStylingManager.FormFieldNameLabel);
-                    StepsToReproduce = GUILayout.TextArea(StepsToReproduce, LocalStylingManager.FormFieldValueLabel);
+                    StepsToReproduce = GUILayout.TextArea(StepsToReproduce, LocalStylingManager.FormInputTextAreaField);
 
                     if (!string.IsNullOrEmpty(StepsToReproduce))
                     {
-                        List<StepToReproduce> steps = BugReportInfo.GetStepsToReproduce(StepsToReproduce);
+                        List<StepToReproduce> steps = BugReportInfoHelpers.GetStepsToReproduce(StepsToReproduce);
                         BugReportInfo.StepsToReproduce = steps;
                     }
                 }
@@ -821,7 +832,7 @@ namespace CommunityTools
                     BugReportInfo.ReproduceRate = EnumUtils<ReproduceRates>.GetValue(reproduceRates[SelectedReproduceRateIndex]);
 
                     GUILayout.Label(nameof(BugReportInfo.ReproduceRate), LocalStylingManager.FormFieldNameLabel);
-                    SelectedReproduceRateIndex = GUILayout.SelectionGrid(SelectedReproduceRateIndex, reproduceRates, reproduceRates.Length, LocalStylingManager.ColoredSelectedGridButton(_SelectedReproduceRateIndex != SelectedReproduceRateIndex));
+                    SelectedReproduceRateIndex = GUILayout.SelectionGrid(SelectedReproduceRateIndex, reproduceRates, reproduceRates.Length, LocalStylingManager.ColoredSelectedGridButton(_SelectedReproduceRateIndex == SelectedReproduceRateIndex));
                     if (_SelectedReproduceRateIndex != SelectedReproduceRateIndex)
                     {
                         BugReportInfo.ReproduceRate = EnumUtils<ReproduceRates>.GetValue(reproduceRates[SelectedReproduceRateIndex]);
@@ -830,12 +841,12 @@ namespace CommunityTools
                 using (new GUILayout.HorizontalScope(GUI.skin.box))
                 {
                     GUILayout.Label(nameof(BugReportInfo.ExpectedBehaviour), LocalStylingManager.FormFieldNameLabel);
-                    BugReportInfo.ExpectedBehaviour = GUILayout.TextArea(BugReportInfo.ExpectedBehaviour, LocalStylingManager.FormFieldValueLabel);
+                    BugReportInfo.ExpectedBehaviour = GUILayout.TextArea(BugReportInfo.ExpectedBehaviour, LocalStylingManager.FormInputTextAreaField);
                 }
                 using (new GUILayout.HorizontalScope(GUI.skin.box))
                 {
                     GUILayout.Label(nameof(BugReportInfo.Note), LocalStylingManager.FormFieldNameLabel);
-                    BugReportInfo.Note = GUILayout.TextArea(BugReportInfo.Note, LocalStylingManager.FormFieldValueLabel);
+                    BugReportInfo.Note = GUILayout.TextArea(BugReportInfo.Note, LocalStylingManager.FormInputTextAreaField);
                 }
             }
         }
@@ -852,18 +863,40 @@ namespace CommunityTools
             }
         }
 
+        protected virtual void TakeScreenshot()
+        {
+            try
+            {
+                BugReportInfoHelpers.CaptureScreenshot(out string ts, out string shot);
+                if (!string.IsNullOrEmpty(shot))
+                {
+                    string taken = $"<color=#{ColorUtility.ToHtmlStringRGBA(Color.green)}>System</color>:\n{shot} taken!";
+                    ShowHUDBigInfo(taken);
+                }
+                else
+                {
+                    string nottaken = $"Could not take screenshot. Something went wrong. Verify logs.";
+                    ShowHUDBigInfo(nottaken);
+                }
+            }
+            catch (Exception exc)
+            {
+                HandleException(exc, nameof(CreateBugReport));
+            }
+        }
+
         protected bool FileWrite(string fileName, string fileContent)
         {
             try
             {
                 byte[] fileContentData = Encoding.UTF8.GetBytes(fileContent);
 
-                if (!Directory.Exists(ReportPath))
+                if (!Directory.Exists(LogFilePath))
                 {
-                    Directory.CreateDirectory(ReportPath);
+                    Directory.CreateDirectory(LogFilePath);
                 }
 
-                BugReportFile = Path.Combine(ReportPath, fileName);
+                BugReportFile = Path.Combine(LogFilePath, fileName);
                 if (!File.Exists(BugReportFile))
                 {
                     using (FileStream fileStream = File.Create(BugReportFile))
@@ -909,7 +942,7 @@ namespace CommunityTools
             if (!string.IsNullOrEmpty(BugReportFile))
             {
                 File.WriteAllText(HtmlFilePath, BugReportFile);
-                ShowHUDBigInfo(HUDBigInfoMessage(ReportCreatedMessage($"html report in {ReportPath}"), MessageType.Info, Color.green));
+                ShowHUDBigInfo(HUDBigInfoMessage(ReportCreatedMessage($"{HtmlFilePath} created!"), MessageType.Info, Color.green));
                
                 BugReportFile = string.Empty;
             }
@@ -919,7 +952,7 @@ namespace CommunityTools
             if (!string.IsNullOrEmpty(BugReportFile))
             {
                 File.WriteAllText(JsonFilePath, BugReportFile);
-                ShowHUDBigInfo(HUDBigInfoMessage(ReportCreatedMessage($"json report in {ReportPath}"), MessageType.Info, Color.green));
+                ShowHUDBigInfo(HUDBigInfoMessage(ReportCreatedMessage($"{JsonFilePath} created!"), MessageType.Info, Color.green));
 
                 BugReportFile = string.Empty;
             }

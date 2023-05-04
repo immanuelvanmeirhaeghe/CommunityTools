@@ -11,11 +11,11 @@ namespace CommunityTools.Data.Reporting
     {
         public BugReportInfo()
         {
-            Topic = GetTopic(BugReportInfoHelpers.TopicPlaceholderText);
-            StepsToReproduce = GetStepsToReproduce(BugReportInfoHelpers.StepsToReproducePlaceholderText);
-            PcSpecs = GetPcSpecs();
-            MapCoordinates = GetMapCoordinates(Player.Get());
-            Note = GetScreenshotInfo(BugReportInfoHelpers.NotePlaceholderText);
+            Topic = BugReportInfoHelpers.GetTopic(BugReportInfoHelpers.TopicPlaceholderText);
+            StepsToReproduce = BugReportInfoHelpers.GetStepsToReproduce(BugReportInfoHelpers.StepsToReproducePlaceholderText);
+            PcSpecs = BugReportInfoHelpers.GetPcSpecs();
+            MapCoordinates = BugReportInfoHelpers.GetMapCoordinates(Player.Get());
+            Note = BugReportInfoHelpers.GetScreenshotInfo(BugReportInfoHelpers.NotePlaceholderText);
         }
 
         /// <summary>
@@ -26,7 +26,7 @@ namespace CommunityTools.Data.Reporting
         /// <summary>
         /// Type of bug.
         /// </summary>
-        public BugReportTypes BugReportType { get; set; } = BugReportTypes.Other;
+        public BugReportTypes Type { get; set; } = BugReportTypes.Other;
 
         /// <summary>
         /// Short description of the bug
@@ -64,93 +64,6 @@ namespace CommunityTools.Data.Reporting
         /// </summary>
         public string Note { get; set; }
 
-        public MapCoordinates GetMapCoordinates(Player player)
-        {
-            player.GetGPSCoordinates(out int gps_lat, out int gps_long);
-
-            var MapCoordinates = new MapCoordinates
-            {
-                GpsLat = gps_lat,
-                GpsLong = gps_long
-            };
-
-            return MapCoordinates;
-        }
-
-        public PcSpecs GetPcSpecs()
-        {
-            var PcSpecs = new PcSpecs
-            {
-                OS = $"{SystemInfo.operatingSystem} - {SystemInfo.operatingSystemFamily}",
-                CPU = $"{SystemInfo.processorType} with {SystemInfo.processorCount} cores",
-                GPU = $"{SystemInfo.graphicsDeviceName}, Version: {SystemInfo.graphicsDeviceVersion}, Vendor: {SystemInfo.graphicsDeviceVendor}, Memory: {SystemInfo.graphicsMemorySize} MB",
-                RAM = $"{SystemInfo.systemMemorySize} MB"
-            };
-
-            return PcSpecs;
-        }
-
-        public Topic GetTopic(string description = "")
-        {
-            var Topic = new Topic
-            {
-                GameVersion = GreenHellGame.s_GameVersion.WithBuildVersionToString(),
-                Description = description
-            };
-
-            return Topic;
-        }
-
-        /// <summary>
-        /// Get the inputted text, which by default should be formatted as a comma-separated list using semi-colon as separator.
-        /// Optionally, set different separator.
-        ///Example input:
-        ///This is the first step description;this is the 2nd step description...;This is the 3rd step description etc;etc;
-        /// </summary>
-        /// <returns></returns>
-        public List<StepToReproduce> GetStepsToReproduce(string stepsToReproduceString)
-        {
-            var StepsToReproduce = new List<StepToReproduce>();
-            string[] steps = stepsToReproduceString?.Trim()?.Split(';');
-
-            // Add by default a step
-            int rank = 1;
-            foreach (string step in steps)
-            {
-                var stepToReproduce = new StepToReproduce
-                {
-                    Rank = rank,
-                    Description = step
-                };
-
-                StepsToReproduce.Add(stepToReproduce);
-                rank++;
-            }
-
-            return StepsToReproduce;
-        }
-
-        /// <summary>
-        /// Take a screenshot.and set the link in the bug report notes.
-        /// </summary>
-        /// <returns></returns>
-        public string GetScreenshotInfo(string note = "")
-        {
-            string timeStamp = DateTime.Now.ToString("yyyyMMddThhmmmsZ");
-            string fileName = $"{nameof(BugReportInfo)}_{timeStamp}.png";
-            string fileDataPath = $"{Application.dataPath.Replace("GH_Data", "Logs")}/Screenshots/";
-            string screenshotFile = $"{fileDataPath}{fileName}";
-
-            if (!Directory.Exists(fileDataPath))
-            {
-                Directory.CreateDirectory(fileDataPath);
-            }
-
-            ScreenCapture.CaptureScreenshot($"{screenshotFile}");
-            note += $"<a href=\"{screenshotFile}\">Screenshot {timeStamp}</a>";
-
-            return note;
-        }
 
     }
 

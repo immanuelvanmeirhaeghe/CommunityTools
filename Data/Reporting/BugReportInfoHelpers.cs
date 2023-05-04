@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Text;
 using CommunityTools.Data.Enums;
+using UnityEngine;
 
 namespace CommunityTools.Data.Reporting
 {
@@ -37,6 +39,103 @@ namespace CommunityTools.Data.Reporting
 
         public static List<string> Urls { get; set; } = new List<string>();
 
+        public static MapCoordinates GetMapCoordinates(Player player)
+        {
+            player.GetGPSCoordinates(out int gps_lat, out int gps_long);
+
+            var MapCoordinates = new MapCoordinates
+            {
+                GpsLat = gps_lat,
+                GpsLong = gps_long
+            };
+
+            return MapCoordinates;
+        }
+
+        public static PcSpecs GetPcSpecs()
+        {
+            var PcSpecs = new PcSpecs
+            {
+                OS = $"{SystemInfo.operatingSystem} - {SystemInfo.operatingSystemFamily}",
+                CPU = $"{SystemInfo.processorType} with {SystemInfo.processorCount} cores",
+                GPU = $"{SystemInfo.graphicsDeviceName}, Version: {SystemInfo.graphicsDeviceVersion}, Vendor: {SystemInfo.graphicsDeviceVendor}, Memory: {SystemInfo.graphicsMemorySize} MB",
+                RAM = $"{SystemInfo.systemMemorySize} MB"
+            };
+
+            return PcSpecs;
+        }
+
+        public static Topic GetTopic(string description = "")
+        {
+            var Topic = new Topic
+            {
+                GameVersion = GreenHellGame.s_GameVersion.WithBuildVersionToString(),
+                Description = description
+            };
+
+            return Topic;
+        }
+
+        /// <summary>
+        /// Get the inputted text, which by default should be formatted as a comma-separated list using semi-colon as separator.
+        /// Optionally, set different separator.
+        ///Example input:
+        ///This is the first step description;this is the 2nd step description...;This is the 3rd step description etc;etc;
+        /// </summary>
+        /// <returns></returns>
+        public static List<StepToReproduce> GetStepsToReproduce(string stepsToReproduceString)
+        {
+            var StepsToReproduce = new List<StepToReproduce>();
+            string[] steps = stepsToReproduceString?.Trim()?.Split(';');
+
+            // Add by default a step
+            int rank = 1;
+            foreach (string step in steps)
+            {
+                var stepToReproduce = new StepToReproduce
+                {
+                    Rank = rank,
+                    Description = step
+                };
+
+                StepsToReproduce.Add(stepToReproduce);
+                rank++;
+            }
+
+            return StepsToReproduce;
+        }
+
+        /// <summary>
+        /// Take a screenshot.and set the link in the bug report notes.
+        /// </summary>
+        /// <returns></returns>
+        public static string GetScreenshotInfo(string note = "")
+        {
+            CaptureScreenshot(out string timeStamp, out string screenshotFile);
+            note += $"<a href=\"{screenshotFile}\">Screenshot {timeStamp}</a>";
+
+            return note;
+        }
+
+        /// <summary>
+        /// Take a screenshot
+        /// </summary>
+        /// <param name="timeStamp"></param>
+        /// <param name="screenshotFile"></param>
+        public static void CaptureScreenshot(out string timeStamp, out string screenshotFile)
+        {
+            timeStamp = DateTime.Now.ToString("yyyyMMddThhmmmsZ");
+            string fileName = $"{nameof(BugReportInfo)}_{timeStamp}.png";
+            string fileDataPath = $"{Application.dataPath.Replace("GH_Data", "Logs")}/Screenshots/";
+            screenshotFile = $"{fileDataPath}{fileName}";
+            if (!Directory.Exists(fileDataPath))
+            {
+                Directory.CreateDirectory(fileDataPath);
+            }
+
+            ScreenCapture.CaptureScreenshot(screenshotFile);
+        }
+
         public static string[] GetBugReportTypes()
         {
             return Enum.GetNames(typeof(BugReportTypes));
@@ -66,7 +165,7 @@ namespace CommunityTools.Data.Reporting
                 bugReportBuilder.AppendLine($"          [{report.Topic?.GameVersion}] - {report.Topic?.Description}");
                 bugReportBuilder.AppendLine($"      </div>");
                 bugReportBuilder.AppendLine($"      <div class=\"content\">");
-                bugReportBuilder.AppendLine($"          <br>Type: {report.BugReportType}");
+                bugReportBuilder.AppendLine($"          <br>Type: {report.Type}");
                 bugReportBuilder.AppendLine($"          <br>Description: {report.Description}");
                 bugReportBuilder.AppendLine($"          <ul>Steps to Reproduce:");
                 foreach (StepToReproduce step in report.StepsToReproduce)
@@ -108,7 +207,7 @@ namespace CommunityTools.Data.Reporting
                 bugReportBuilder.AppendLine($"\"GameVersion\": \"{report.Topic?.GameVersion}\",");
                 bugReportBuilder.AppendLine($"\"Description\": \"{report.Topic?.Description}\"");
                 bugReportBuilder.AppendLine($"}},");
-                bugReportBuilder.AppendLine($"\"Type\": \"{report.BugReportType}\",");
+                bugReportBuilder.AppendLine($"\"Type\": \"{report.Type}\",");
                 bugReportBuilder.AppendLine($"\"Description\": \"{report.Description}\",");
                 bugReportBuilder.AppendLine($"\"StepsToReproduce\": [");
                 foreach (StepToReproduce step in report.StepsToReproduce)
