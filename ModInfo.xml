@@ -1,10 +1,18 @@
 <Mod ID="CommunityTools">
-  <Compatible>2.0.3</Compatible>
+  <Compatible>2.4.2</Compatible>
+  <Button Standard="B" ID="ShortcutKey">
+    <Name>
+      <EN>Press shortcut key LeftAlt +</EN>
+    </Name>
+    <Description>
+      <EN>to open main mod screen.</EN>
+    </Description>
+  </Button>
   <Name>
     <EN>CommunityTools</EN>
   </Name>
   <Description>
     <EN>CommunityTools is a mod for Green Hell that aims to be a tool for the gamer community. A player can contact Creepy Jar by mail, go to the Steam Guide, Steam Forum or create bug reports.</EN>
   </Description>
-  <Version>1.0.2.5</Version>
+  <Version>1.0.2.7</Version>
 </Mod>

@@ -68,6 +68,8 @@ namespace CommunityTools
         private static StylingManager LocalStylingManager;
 
         public string BugReportFile { get; set; }
+        public string JsonReport { get; set; }
+        public string HtmlReport { get; set; }
         public BugReportInfo BugReportInfo { get; set; }
         public int SelectedBugReportTypeIndex { get; set; }
         public int SelectedReproduceRateIndex { get; set; }
@@ -292,9 +294,13 @@ namespace CommunityTools
                 case 1:
                     ShowBugReportScreen = !ShowBugReportScreen;
                     return;
+                case 3:
+                    ShowCommunityToolsInfo = !ShowCommunityToolsInfo;
+                    return;
                 default:
                     ShowCommunityToolsScreen = !ShowCommunityToolsScreen;
                     ShowBugReportScreen = !ShowBugReportScreen;
+                    ShowCommunityToolsInfo = !ShowCommunityToolsInfo;
                     return;
             }
         }
@@ -449,8 +455,8 @@ namespace CommunityTools
                 {
                     using (new GUILayout.VerticalScope(GUI.skin.box))
                     {
-                        GUILayout.Label($"{ModName} Manager", LocalStylingManager.ColoredHeaderLabel(Color.yellow));
-                        GUILayout.Label($"{ModName} Options", LocalStylingManager.ColoredSubHeaderLabel(Color.yellow));
+                        GUILayout.Label($"{ModName} Manager", LocalStylingManager.ColoredHeaderLabel(LocalStylingManager.DefaultHeaderColor));
+                        GUILayout.Label($"{ModName} Options", LocalStylingManager.ColoredSubHeaderLabel(LocalStylingManager.DefaultHeaderColor));
 
                         using (new GUILayout.VerticalScope(GUI.skin.box))
                         {
@@ -463,7 +469,7 @@ namespace CommunityTools
                                 ModInfoBox();
                             }
                             MultiplayerOptionBox();
-                            SupportOnlineBox();                         
+                            OnlineSupportOptionsBox();                         
                         }
                     }
                 }
@@ -567,11 +573,11 @@ namespace CommunityTools
             }
         }
         
-        protected virtual void  SupportOnlineBox()
+        protected virtual void  OnlineSupportOptionsBox()
         {
             using (new GUILayout.VerticalScope(GUI.skin.box))
             {
-                GUILayout.Label("Online support options.", LocalStylingManager.TextLabel);
+                GUILayout.Label("Online Support Options", LocalStylingManager.ColoredSubHeaderLabel(LocalStylingManager.DefaultHeaderColor));
 
                 GUILayout.Label($"Depending what you click, this will open your external default e-mail or web browser program! The game will be paused.", LocalStylingManager.ColoredCommentLabel(LocalStylingManager.DefaultAttentionColor));
                 using (new GUILayout.HorizontalScope(GUI.skin.box))
@@ -715,12 +721,35 @@ namespace CommunityTools
 
                 using (new GUILayout.HorizontalScope(GUI.skin.box))
                 {
-                    GUILayout.Label($"To send your bug report form, click", LocalStylingManager.TextLabel);
+                    GUILayout.Label($"To log your bug report in HTML and in JSON, click", LocalStylingManager.TextLabel);
                     if (GUILayout.Button("Create report", GUI.skin.button, GUILayout.Width(150f)))
                     {
                         OnClickCreateBugReportButton();
                     }
                 }
+
+                if (!string.IsNullOrEmpty(HtmlReport))
+                {
+                    using (new GUILayout.HorizontalScope(GUI.skin.box))
+                    {
+                        if (GUILayout.Button($"Open HTML report", GUI.skin.button, GUILayout.Width(150f)))
+                        {
+                            Application.OpenURL(HtmlReport);
+                        }
+                    }
+                }
+
+                if (!string.IsNullOrEmpty(JsonReport))
+                {
+                    using (new GUILayout.HorizontalScope(GUI.skin.box))
+                    {
+                        if (GUILayout.Button($"Open JSON report", GUI.skin.button, GUILayout.Width(150f)))
+                        {
+                            Application.OpenURL(JsonReport);
+                        }
+                    }
+                }
+
             }
         }
 
@@ -740,13 +769,16 @@ namespace CommunityTools
         {
             using (new GUILayout.VerticalScope(GUI.skin.box))
             {
-                BugReportInfo = new BugReportInfo();
+                if (BugReportInfo == null)
+                {
+                    BugReportInfo = new BugReportInfo();
+                }
                 string[] bugReportTypes = BugReportInfoHelpers.GetBugReportTypes();
                 string[] reproduceRates = BugReportInfoHelpers.GetReproduceRates();
                 int _SelectedBugReportTypeIndex = SelectedBugReportTypeIndex;
                 int _SelectedReproduceRateIndex = SelectedReproduceRateIndex;
 
-                GUILayout.Label("Bug report form", LocalStylingManager.ColoredSubHeaderLabel(LocalStylingManager.DefaultHighlightColor));
+                GUILayout.Label("Bug Report Form", LocalStylingManager.ColoredSubHeaderLabel(LocalStylingManager.DefaultHeaderColor));
 
                 using (new GUILayout.HorizontalScope(GUI.skin.box))
                 {
@@ -827,7 +859,7 @@ namespace CommunityTools
                     Directory.CreateDirectory(ReportPath);
                 }
 
-                BugReportFile = ReportPath + fileName;
+                BugReportFile = Path.Combine(ReportPath, fileName);
                 if (!File.Exists(BugReportFile))
                 {
                     using (FileStream fileStream = File.Create(BugReportFile))
@@ -836,6 +868,7 @@ namespace CommunityTools
                         fileStream.Flush();
                     }
                 }
+
                 return true;
             }
             catch (Exception exc)
@@ -865,17 +898,24 @@ namespace CommunityTools
 
        protected virtual void  CreateReports()
         {
+            string timeStamp = DateTime.Now.ToString("yyyyMMddThhmmmsZ");
+            string path = Path.Combine(ReportPath, $"{nameof(BugReportFile)}_{timeStamp}.html");
             BugReportFile = CreateBugReportAsHtml();
             if (!string.IsNullOrEmpty(BugReportFile))
             {
+                File.WriteAllText(path, BugReportFile);
                 ShowHUDBigInfo(HUDBigInfoMessage(ReportCreatedMessage($"html report in {ReportPath}"), MessageType.Info, Color.green));
+                HtmlReport = path;
                 BugReportFile = string.Empty;
             }
 
+            path = Path.Combine(ReportPath, $"{nameof(BugReportFile)}_{timeStamp}.json");
             BugReportFile = GetBugReportAsJSON();
             if (!string.IsNullOrEmpty(BugReportFile))
             {
+                File.WriteAllText(path, BugReportFile);
                 ShowHUDBigInfo(HUDBigInfoMessage(ReportCreatedMessage($"json report in {ReportPath}"), MessageType.Info, Color.green));
+                JsonReport = path;
                 BugReportFile = string.Empty;
             }
         }
